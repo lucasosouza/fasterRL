@@ -1,0 +1,7 @@
+/experiments
+/logs
+/results
+/runs
+/weights
+/__pycache__
+/.idea

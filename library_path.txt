@@ -1,0 +1,1 @@
+home/lucas/.conda/envs/marlo/lib/python3.6/site-packages/gym_minecraft-0.0.2-py3.6.egg/gym_minecraft
