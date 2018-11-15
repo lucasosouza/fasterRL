@@ -117,3 +117,64 @@ class SimplePolicyNetwork(Network):
         
         # need to think about when to apply the softmax 
         # maybe the methods should go here in this network instead of someplace else
+
+
+class SimpleA2CNetwork(Network):
+
+    def __init__(self, input_shape, n_actions, device="cpu", random_seed=42):
+        super(SimpleA2CNetwork, self).__init__(device, random_seed)
+
+        hidden_layer_neurons = 128
+
+        self.base = nn.Sequential(
+            nn.Linear(input_shape[0], hidden_layer_neurons),
+            nn.ReLU()
+        )
+
+        self.policy = nn.Sequential(
+            nn.Linear(hidden_layer_neurons, n_actions)
+        )
+
+        self.value = nn.Sequential(
+            nn.Linear(hidden_layer_neurons, 1)
+        )
+
+    def forward(self, x):
+
+        # manually changed from torch.FloatTensor to torch.cuda.FloatTensor to run in GPU
+        if self.device == "cuda":
+            x = x.type(torch.cuda.FloatTensor)
+        elif self.device == "cpu":
+            x = x.type(torch.FloatTensor)    
+
+        x = self.base(x)
+
+        return self.policy(x), self.value(x)
+
+
+""""
+save this for DDPG, which is the next step apparently
+
+class SimpleA2CNetwork(Network):
+        super(SimpleA2CNetwork, self).__init__(device, random_seed)
+
+        hidden_layer_neurons = 128
+
+        self.base = nn.Sequential(
+            nn.Linear(input_shape[0], hidden_layer_neurons),
+            nn.ReLU()
+        )
+
+        self.actor_mu = nn.Sequential(
+            nn.Linear(hidden_layer_neurons, n_actions),
+            nn.Tanh()
+        )
+
+        self.actor_var = nn.Sequential(
+            nn.Linear(hidden_layer_neurons, n_actions),
+            nn.Softplus() # why softplus?
+        )
+
+        self.critic = nn.Linear(hidden_layer_neurons, 1)
+
+"""

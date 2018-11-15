@@ -16,9 +16,9 @@ from fasterRL.common import BaseExperiment, UntilWinExperiment
 params = {
     "PLATFORM": "openai",
     "ENV_NAME": "CartPole-v0",
-    "METHOD": "MonteCarloReinforce",
+    "METHOD": "A2C",
     "LOGGER_METHOD": "WinLogger",
-    "NETWORK_TYPE": "SimplePolicyNetwork",
+    "NETWORK_TYPE": "SimpleA2CNetwork",
     "REPORTING_INTERVAL": 10,
     "LOG_LEVEL": 4,
     "NUMBER_EPISODES_MEAN": 10,
@@ -27,24 +27,12 @@ params = {
     "MAX_EPISODES": 3000,
     "LEARNING_RATE": 1e-3,
     "GAMMA": 0.99,
+    "ENTROPY_BONUS": True, 
+    "ENTROPY_BETA": 0.01,
+    "GRADIENT_CLIPPING": True,
+    "CLIP_GRAD": 0.1
 }
-
-# BATCH Reinforce
-params["METHOD"] = "BatchReinforce"
-params["EPISODE_BUFFER_SIZE"]  = 16
-params["LEARNING_RATE"] = 1e-2
-
-# using baseline
-params["BASELINE_QVALUE"] = True
-
-# using entropy bonus
-params["ENTROPY_BONUS"] = True
-params["ENTROPY_BETA"] = 0.01
 
 exp = UntilWinExperiment(params)
 result = exp.run()
 print("Method {} took an average of {:.2f} episodes".format(params["METHOD"], result))
-
-# Method MonteCarloReinforce took an average of 947.80 episodes
-# Method BatchReinforce took an average of 465.90 episodes
-# Method BatchReinforce took an average of 381.60 episodes (using baseline)

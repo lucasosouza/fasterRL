@@ -7,6 +7,7 @@ import torch.optim as optim
 import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
+from collections import deque
 
 class PolicyGradient(BaseAgent):
 
@@ -17,6 +18,7 @@ class PolicyGradient(BaseAgent):
         self.network_type = SimplePolicyNetwork
         if "NETWORK_TYPE" in params:
             self.network_type = eval(params["NETWORK_TYPE"])
+
 
     def set_environment(self, env):
         super(PolicyGradient, self).set_environment(env)
@@ -82,7 +84,76 @@ class CrossEntropy(PolicyGradient):
                 loss_v.backward() # propagate gradients
                 self.optimizer.step() # change weights
 
-class MonteCarloReinforce(PolicyGradient):
+class Reinforce(PolicyGradient):
+
+    def __init__(self, params, alias="agent"):
+        super(Reinforce, self).__init__(params, alias)
+
+        # baseline
+        self.baseline_qvalue = False
+        if "BASELINE_QVALUE" in params:
+            self.baseline_qvalue = params["BASELINE_QVALUE"]
+
+        # entropy bonus
+        self.entropy_bonus = False
+        if "ENTROPY_BONUS" in params:
+            self.entropy_bonus = params["ENTROPY_BONUS"]
+            if self.entropy_bonus:
+                self.entropy_beta = 0.01
+                if "ENTROPY_BETA" in params:
+                    self.entropy_beta = params["ENTROPY_BETA"]
+
+        # gradient clipping
+        self.gradient_clipping = False
+        if "GRADIENT_CLIPPING" in params:
+            self.gradient_clipping = params["GRADIENT_CLIPPING"]
+            if self.gradient_clipping:
+                self.clip_grad = 0.1
+                if "CLIP_GRAD" in params:
+                    self.clip_grad = params["CLIP_GRAD"]
+
+    def calculate_entropy_loss(self, prob_v, log_prob_v):
+
+        entropy_v = -(prob_v * log_prob_v).sum(dim=1).mean()
+        entropy_loss_v = - self.entropy_beta * entropy_v
+        return entropy_loss_v
+
+    def calculate_qvalues(self):
+
+        values = []
+        value = 0
+        for state, action, reward in reversed(self.transitions):
+            value = reward + self.gamma * value
+            values.append(value)
+
+        values = values[::-1] # revert back to original order of transitions
+
+        return values
+
+    def calculate_loss_and_optimize(self, states, actions, values):
+
+        # do the learning
+        self.optimizer.zero_grad() # reset gradients
+
+        actions_v = torch.LongTensor(actions)
+        values_v = torch.FloatTensor(values)
+
+        logits_v = self.calculate_action_probs(states, probs=False)
+        log_prob_v = F.log_softmax(logits_v, dim=1)
+        log_prob_values_v = values_v * log_prob_v[range(len(actions)), actions]
+        loss_v = -log_prob_values_v.mean()
+
+        # if use entropy bonus, do additional calculation
+        if self.entropy_bonus:
+            prob_v = F.softmax(logits_v, dim=1)
+            entropy_loss_v = self.calculate_entropy_loss(prob_v, log_prob_v)
+            loss_v += entropy_loss_v
+
+        loss_v.backward() # propagate gradients
+        self.optimizer.step() # change weights
+
+
+class MonteCarloReinforce(Reinforce):
 
     def reset(self):
         super(Reinforce, self).reset()
@@ -95,31 +166,16 @@ class MonteCarloReinforce(PolicyGradient):
 
         if done:        
 
-            # calculate values
-            values = []
-            value = 0
-            for state, action, reward in reversed(self.transitions):
-                value = reward + self.gamma * value
-                values.append(value)
-            values = values[::-1] # revert back to original order of transitions
-
-            # do the learning
-            self.optimizer.zero_grad() # reset gradients
+            values = self.calculate_qvalues()
+            # remove baseline
+            if self.baseline_qvalue:
+                values -= np.mean(values)
 
             states, actions, _ = zip(*self.transitions)
-            actions_v = torch.LongTensor(actions)
-            values_v = torch.FloatTensor(values)
-
-            logits_v = self.calculate_action_probs(states, probs=False)
-            log_prob_v = F.log_softmax(logits_v, dim=1)
-            log_prob_values_v = values_v * log_prob_v[range(len(actions)), actions]
-            loss_v = -log_prob_values_v.mean()
-
-            loss_v.backward() # propagate gradients
-            self.optimizer.step() # change weights
+            self.calculate_loss_and_optimize(states, actions, values)
 
 
-class BatchReinforce(PolicyGradient):
+class BatchReinforce(Reinforce):
     # implement a crude version to test, no buffer, then improve if ok
 
     def __init__(self, params, alias="agent"):
@@ -141,13 +197,9 @@ class BatchReinforce(PolicyGradient):
         if done:        
 
             # calculate values
-            values = []
-            value = 0
-            for state, action, reward in reversed(self.transitions):
-                value = reward + self.gamma * value
-                values.append(value)
-            values = values[::-1] # revert back to original order of transitions
+            values = self.calculate_qvalues()
 
+            # keep track of batch. note: move to buffer later
             self.all_values.extend(values)
             self.all_transitions.extend(self.transitions)
             self.transitions = []
@@ -155,20 +207,14 @@ class BatchReinforce(PolicyGradient):
 
             if self.episodes == self.episode_buffer_size:
 
-                # do the learning
-                self.optimizer.zero_grad() # reset gradients
+                # remove baseline (a baseline for the batch)
+                if self.baseline_qvalue:
+                    self.all_values -= np.mean(self.all_values)
 
+
+                # do learning
                 states, actions, _ = zip(*self.all_transitions)
-                actions_v = torch.LongTensor(actions)
-                values_v = torch.FloatTensor(self.all_values)
-
-                logits_v = self.calculate_action_probs(states, probs=False)
-                log_prob_v = F.log_softmax(logits_v, dim=1)
-                log_prob_values_v = values_v * log_prob_v[range(len(actions)), actions]
-                loss_v = -log_prob_values_v.mean()
-
-                loss_v.backward() # propagate gradients
-                self.optimizer.step() # change weights
+                self.calculate_loss_and_optimize(states, actions, self.all_values)
 
                 # reset all variables
                 self.all_transitions = []
@@ -186,5 +232,22 @@ class BatchReinforce(PolicyGradient):
 # but I don't need to use the same logic if I don't want to - since I'm not keeping them, I don't really need a buffer - it is just MonteCarlo
 # is it every visit or first visit? seems like Every Visit
 # let's rock and roll and test both
+
+
+opted to do an average of the episode instead of keeping a list of past rewards
+and doing a moving average
+would introduce a new hyperparameter dependent on the environment, number of rewards to keep track of in the moving average
+or if I used a stepsize approach to update the average reward, a learning rate / step size for the average reward. anyway it would be an additional parameter I don't want to keep track of 
+
+        # baseline
+        self.use_baseline = False
+        if "BASELINE" in params:
+            if params["BASELINE"]:
+                self.use_baseline = True
+                baseline_ma_period = 1000
+                if "BASELINE_MA_PERIOD" in params:
+                    baseline_ma_period = params["BASELINE_MA_PERIOD"]
+                self.last_values = deque(maxlen=baseline_ma_period)
+
 
 """
