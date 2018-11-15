@@ -8,6 +8,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
 from collections import deque
+import math
 
 class PolicyGradient(BaseAgent):
 
@@ -18,7 +19,6 @@ class PolicyGradient(BaseAgent):
         self.network_type = SimplePolicyNetwork
         if "NETWORK_TYPE" in params:
             self.network_type = eval(params["NETWORK_TYPE"])
-
 
     def set_environment(self, env):
         super(PolicyGradient, self).set_environment(env)
@@ -112,6 +112,11 @@ class Reinforce(PolicyGradient):
                 if "CLIP_GRAD" in params:
                     self.clip_grad = params["CLIP_GRAD"]
 
+    def reset(self):
+        super(Reinforce, self).reset()
+
+        self.transitions = []
+
     def calculate_entropy_loss(self, prob_v, log_prob_v):
 
         entropy_v = -(prob_v * log_prob_v).sum(dim=1).mean()
@@ -152,13 +157,91 @@ class Reinforce(PolicyGradient):
         loss_v.backward() # propagate gradients
         self.optimizer.step() # change weights
 
+class ContinuousReinforce(Reinforce):
+
+    def set_environment(self, env):
+        """ Need to rebuild this. Shouldn't call from 0, need to be able at least to reuse parent class. Change parent class method seems to be the best way of fixing this"""
+
+        self.env = env
+        self.reset()
+
+        # define action boundaries to clip network output
+        self.action_lower_bounds = self.env.action_space.low
+        self.action_upper_bounds = self.env.action_space.high
+        self.action_range = self.action_upper_bounds - self.action_lower_bounds
+
+        self.net = self.network_type(env.observation_space.shape, env.action_space.shape,
+            self.action_lower_bounds, self.action_range,
+            device=self.device, random_seed=self.random_seed)
+        self.optimizer = optim.Adam(self.net.parameters(), lr=self.learning_rate)
+
+
+    def select_action(self):
+
+        action_values = self.calculate_action_values([self.state], return_values=True)[0]
+
+        return action_values
+
+    def calculate_entropy_loss(self, var_v):
+
+        entropy_v = ((torch.log(2*math.pi * var_v) + 1)/2).mean()
+        entropy_loss_v = - self.entropy_beta * entropy_v
+
+        return entropy_loss_v
+
+    def calculate_logprob(self, mu_v, var_v, actions_v):
+        p1 = - ((mu_v - actions_v) ** 2) / (2*var_v.clamp(min=1e-3))
+        p2 = - torch.log(torch.sqrt(2 * math.pi * var_v))
+        return p1 + p2
+
+    def calculate_action_values(self, states, return_values=False):
+
+        states_v = torch.FloatTensor(states) 
+        mu_v, var_v = self.net(states_v)
+        if return_values:
+            mu = mu_v.data.cpu().numpy()
+            sigma = torch.sqrt(var_v).data.cpu().numpy()
+            sigma = np.clip(sigma, a_min=0, a_max=self.action_range) # can't be lower than 0
+            # quick work around for null values - not ok
+            try:
+                action_values = np.random.normal(mu, sigma)
+            except:
+                print("Null values in sigma. Considering variance as the maximum allowed range for actions")
+                action_values = np.random.normal(mu, np.ones(sigma.shape) * self.action_range)
+            action_values = np.clip(action_values, self.action_lower_bounds, self.action_upper_bounds)
+            return action_values
+
+        return mu_v, var_v
+
+    def calculate_loss_and_optimize(self, states, actions, values):
+
+        # do the learning
+        self.optimizer.zero_grad() # reset gradients
+
+        actions_v = torch.FloatTensor(actions)
+        values_v = torch.FloatTensor(values)
+
+        # get mean and variance of action values
+        mu_v, var_v = self.calculate_action_values(states)
+        log_prob_v = self.calculate_logprob(mu_v, var_v, actions_v)
+        loss_v = -log_prob_v.mean()
+
+        # if use entropy bonus, do additional calculation
+        if self.entropy_bonus:
+            entropy_loss_v = self.calculate_entropy_loss(var_v)
+            loss_v += entropy_loss_v
+
+        loss_v.backward() # propagate gradients
+        self.optimizer.step() # change weights
+
+# what changes from discrete?
+# I no longer predict probabilities
+# I no longer sample
+# instead, I get the two values, mu and var
+# and sample from the gaussian distribution
+# it is not that different, it just changes how I choose the actions
 
 class MonteCarloReinforce(Reinforce):
-
-    def reset(self):
-        super(Reinforce, self).reset()
-
-        self.transitions = []
 
     def learn(self, action, next_state, reward, done):
   
@@ -174,6 +257,21 @@ class MonteCarloReinforce(Reinforce):
             states, actions, _ = zip(*self.transitions)
             self.calculate_loss_and_optimize(states, actions, values)
 
+class ContinuousMonteCarloReinforce(ContinuousReinforce):
+
+    def learn(self, action, next_state, reward, done):
+  
+        self.transitions.append((self.state, action, reward))
+
+        if done:        
+
+            values = self.calculate_qvalues()
+            # remove baseline
+            if self.baseline_qvalue:
+                values -= np.mean(values)
+
+            states, actions, _ = zip(*self.transitions)
+            self.calculate_loss_and_optimize(states, actions, values)
 
 class BatchReinforce(Reinforce):
     # implement a crude version to test, no buffer, then improve if ok
@@ -202,7 +300,6 @@ class BatchReinforce(Reinforce):
             # keep track of batch. note: move to buffer later
             self.all_values.extend(values)
             self.all_transitions.extend(self.transitions)
-            self.transitions = []
             self.episodes += 1
 
             if self.episodes == self.episode_buffer_size:
@@ -222,9 +319,50 @@ class BatchReinforce(Reinforce):
                 self.episodes = 0
 
 
-# will try to use as many methods from batch reinforce as possible
+class ContinuousBatchReinforce(ContinuousReinforce):
+    # implement a crude version to test, no buffer, then improve if ok
 
-# class ContinuousBatchReinforce(BatchReinforce):
+    def __init__(self, params, alias="agent"):
+        super(ContinuousReinforce, self).__init__(params, alias)
+
+        self.episode_buffer_size = 16
+        if "EPISODE_BUFFER_SIZE" in params:
+            self.episode_buffer_size = params["EPISODE_BUFFER_SIZE"]
+
+        self.transitions = []
+        self.all_values = []
+        self.all_transitions = []
+        self.episodes = 0
+
+    def learn(self, action, next_state, reward, done):
+  
+        self.transitions.append((self.state, action, reward))
+
+        if done:        
+
+            # calculate values
+            values = self.calculate_qvalues()
+
+            # keep track of batch. note: move to buffer later
+            self.all_values.extend(values)
+            self.all_transitions.extend(self.transitions)
+            self.episodes += 1
+
+            if self.episodes == self.episode_buffer_size:
+
+                # remove baseline (a baseline for the batch)
+                if self.baseline_qvalue:
+                    self.all_values -= np.mean(self.all_values)
+
+                # do learning
+                states, actions, _ = zip(*self.all_transitions)
+                self.calculate_loss_and_optimize(states, actions, self.all_values)
+
+                # reset all variables
+                self.all_transitions = []
+                self.all_values = []
+                self.episodes = 0
+
 
 
 

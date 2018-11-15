@@ -8,7 +8,6 @@ register(
     reward_threshold=0.78, # optimum = .8196
 )
 
-
 class BaseEnv():
     """    
     make a class that overwrites the default environment
@@ -20,6 +19,9 @@ class BaseEnv():
     def __init__(self, params):
 
         # initialize environment depending on the platform
+        if "PLATFORM" not in params:
+            raise Exception("Please define the paramater PLATFORM. Currently supported plataforms: openai, marlo, gym-minecraft")
+
         self.platform = params["PLATFORM"]
 
         if self.platform == "openai":

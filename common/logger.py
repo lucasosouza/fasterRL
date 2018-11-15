@@ -163,6 +163,28 @@ class CrossEntropyLogger(WinLogger):
                     value = np.mean(per_action[idx])
                     self.writer.add_scalar(var_name, value, self.episode_count)
 
+
+class ContinuousPGLogger(WinLogger):
+
+    def log_episode(self):
+        super(ContinuousPGLogger, self).log_episode()
+
+        # level 5 - debugging
+        if self.log_level > 4 :
+
+            #  plot action values to facilitate debugging
+            if len(self.agent.transitions) > 0:
+                states = list(map(lambda exp:exp[0], self.agent.transitions))
+                # convert that to actions given the current policy
+                action_values = self.agent.calculate_action_values(states, return_values=True)
+                num_actions = len(action_values[0])
+                # plot for all actions
+                for idx in range(num_actions):
+                    var_name = "action/" + str(idx)
+                    var_value = np.mean(action_values[:, idx])
+                    self.writer.add_scalar(var_name, var_value, self.episode_count)
+
+
 class A2CLogger(WinLogger):
 
     def log_episode(self):
@@ -196,8 +218,8 @@ class A2CLogger(WinLogger):
             per_action = list(zip(*self.agent.action_probs))
             for idx in range(self.agent.env.action_space.n):
                 var_name = "action/" + str(idx)
-                value = np.mean(per_action[idx])
-                self.writer.add_scalar(var_name, value, self.episode_count)
+                var_value = np.mean(per_action[idx])
+                self.writer.add_scalar(var_name, var_value, self.episode_count)
 
 
 """ 

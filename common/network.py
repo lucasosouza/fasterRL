@@ -119,6 +119,66 @@ class SimplePolicyNetwork(Network):
         # maybe the methods should go here in this network instead of someplace else
 
 
+class SimpleContinuousPolicyNetwork(Network):
+
+    def __init__(self, input_shape, actions_shape, action_lower_bounds,action_range, device="cpu", random_seed=42):
+        super(SimpleContinuousPolicyNetwork, self).__init__(device, random_seed)
+
+
+        self.action_lower_bounds = torch.FloatTensor(action_lower_bounds)
+        self.action_mult_factor = torch.FloatTensor(action_range / 2.) # divided by range of tanh, 2
+        n_actions = actions_shape[0]
+        
+        hidden_layer_neurons = 128
+
+        # simple network for average case
+        # when one dimensional, needs to extract first variable
+        self.base = nn.Sequential(
+            nn.Linear(input_shape[0], hidden_layer_neurons),
+            nn.ReLU()
+        )
+
+        self.mu = nn.Sequential(
+            nn.Linear(hidden_layer_neurons, n_actions),
+            nn.Tanh()
+        )
+        # tanh is pushing values to be between 1 and 0
+        # is that ok? only if I multiply it by the range before I take action
+        # then it makes more sense
+        # what about var?
+
+        self.var = nn.Sequential(
+            nn.Linear(hidden_layer_neurons, n_actions),
+            nn.Softplus()
+        )
+        
+    def forward(self, x):
+
+        # manually changed from torch.FloatTensor to torch.cuda.FloatTensor to run in GPU
+        if self.device == "cuda":
+            x = x.type(torch.cuda.FloatTensor)
+        elif self.device == "cpu":
+            x = x.type(torch.FloatTensor)    
+
+        x = self.base(x)
+
+        return self.adjust_output_range(self.mu(x)), self.var(x)
+
+    def adjust_output_range(self, x_mu): 
+        """ Adjust output to the action range expected in the environment
+            Do I let it calculate gradients on this? yes, I would think so
+        """ 
+
+        # converts output of tanh to 0 to 2 range
+        x_mu = x_mu + 1.
+        # multiply by the range in env divided by range in neural network
+        x_mu = x_mu * self.action_mult_factor
+        # add lower bound of env range
+        x_mu = x_mu + self.action_lower_bounds
+
+        return x_mu, x_var
+
+
 class SimpleA2CNetwork(Network):
 
     def __init__(self, input_shape, n_actions, device="cpu", random_seed=42):
