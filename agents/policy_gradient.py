@@ -222,6 +222,13 @@ class BatchReinforce(Reinforce):
                 self.episodes = 0
 
 
+# will try to use as many methods from batch reinforce as possible
+
+# class ContinuousBatchReinforce(BatchReinforce):
+
+
+
+
 """"
 
 

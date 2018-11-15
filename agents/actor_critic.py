@@ -10,12 +10,12 @@ import numpy as np
 
 class A2C(MonteCarloReinforce):
 
-    # already has network with two outputs
-    # first is the policy, second is the value 
+    def set_environment(self, env):
+        super(A2C, self).set_environment(env)
 
-    # what changes? 
-    # just in how I calculate q values
-    # and how I calculate loss and optimize
+        # change eps
+        self.optimizer = optim.Adam(self.net.parameters(), lr=self.learning_rate, eps=1e-3)
+
 
     def calculate_action_probs(self, states, probs=False):
 
@@ -29,6 +29,15 @@ class A2C(MonteCarloReinforce):
 
         return logits_v, qvalues_v
 
+    def calculate_kl_div(self, states, prob_v):
+
+        states_v = torch.FloatTensor(states) 
+        new_logits_v, _ = self.net(states_v)
+        new_prob_v = F.softmax(new_logits_v, dim=1)
+        kl_div_v = -((new_prob_v / prob_v).log() * prob_v).sum(dim=1).mean()
+
+        return kl_div_v
+
     def calculate_loss_and_optimize(self, states, actions, values):
 
         # do the learning
@@ -39,33 +48,49 @@ class A2C(MonteCarloReinforce):
 
         logits_v, qvalues_v = self.calculate_action_probs(states, probs=False)
 
-        # calculate loss for value
-        loss_value_v = F.mse_loss(values_v.squeeze(-1), qvalues_v)
+        # save prob_v to calculate KL divergence later
+        prob_v = F.softmax(logits_v, dim=1)
 
+        # calculate loss for value
+        self.loss_value_v = F.mse_loss(values_v.squeeze(-1), qvalues_v)
         # calculate loss for policy
         log_prob_v = F.log_softmax(logits_v, dim=1)
         # calculate advantage
-        adv_v = qvalues_v - values_v.detach()
+        # detach, no gradients - qvalues needs to get first
+        adv_v = qvalues_v.detach()[0] - values_v.detach()
         # multiply by advantage instead of value
         log_prob_values_v = adv_v * log_prob_v[range(len(actions)), actions]
-        loss_policy_v = -log_prob_values_v.mean()
+        self.loss_policy_v = -log_prob_values_v.mean()
 
-        loss_v = loss_value_v + loss_policy_v
+        loss_v = self.loss_value_v
 
         # if use entropy bonus, do additional calculation
         if self.entropy_bonus:
             prob_v = F.softmax(logits_v, dim=1)
-            entropy_loss_v = self.calculate_entropy_loss(prob_v, log_prob_v)
-            loss_v += entropy_loss_v
+            self.loss_entropy_v = self.calculate_entropy_loss(prob_v, log_prob_v)
+            loss_v += self.loss_entropy_v
 
-        loss_v.backward() # propagate gradients
+        # propagate policy loss separately t track the gradients
+        self.loss_policy_v.backward(retain_graph=True)
+        # extract gradient from policy,to plot
+        self.grads = np.concatenate([p.grad.data.cpu().numpy().flatten() 
+            for p in self.net.parameters() if p.grad is not None])
+
+        # propagate remaining loss 
+        loss_v.backward()
 
         if self.gradient_clipping:
             nn.utils.clip_grad_norm_(self.net.parameters(), self.clip_grad)           
-
         self.optimizer.step() # change weights
 
-    
+        # metrics for logger
+        self.kl_div_v = self.calculate_kl_div(states, prob_v)
+        self.action_probs = self.calculate_action_probs(states, probs=True)
+        self.mean_adv = torch.mean(adv_v)
+
+        # needs grads and kl_div_v to be accessible in the logger
+        # I will start with the easy way of saving this as a class variable
+        # and then improving it later
 
 # procedures are correct
 # to debug, I would have to introduce those other things discussed

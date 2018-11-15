@@ -64,8 +64,8 @@ class BaseLogger():
 
         if self.log_level > 3 :
 
-            self.writer.add_scalar("frame_speed", frame_speed, self.frame_count)
-            self.writer.add_scalar("step_reward", self.agent.step_reward, self.frame_count)
+            self.writer.add_scalar("speed/frame", frame_speed, self.frame_count)
+            self.writer.add_scalar("reward/step", self.agent.step_reward, self.frame_count)
 
             # temporary workaround. may add several variables like this to logger instead of subclassing
             if hasattr(self.agent, "epsilon"):
@@ -92,9 +92,9 @@ class BaseLogger():
 
         if self.log_level > 2 :
 
-            self.writer.add_scalar("reward", self.episode_reward, self.episode_count)
+            self.writer.add_scalar("reward/episode", self.episode_reward, self.episode_count)
             self.writer.add_scalar("steps", self.steps_count, self.episode_count)
-            self.writer.add_scalar("ep_speed", episode_speed, self.episode_count)
+            self.writer.add_scalar("speed/episode", episode_speed, self.episode_count)
 
             self.episode_start = time()
 
@@ -162,6 +162,42 @@ class CrossEntropyLogger(WinLogger):
                     var_name = "action/" + str(idx)
                     value = np.mean(per_action[idx])
                     self.writer.add_scalar(var_name, value, self.episode_count)
+
+class A2CLogger(WinLogger):
+
+    def log_episode(self):
+        super(A2CLogger, self).log_episode()
+
+        # level 5 - debugging
+        if self.log_level > 4 :
+
+            # log gradient information
+            grad_l2 = np.sqrt(np.mean(np.square(self.agent.grads)))
+            grad_max = np.max(np.abs(self.agent.grads))
+            grad_var = np.var(self.agent.grads)
+            self.writer.add_scalar("grad/l2", grad_l2, self.episode_count)
+            self.writer.add_scalar("grad/max", grad_max, self.episode_count)
+            self.writer.add_scalar("grad/var", grad_var, self.episode_count)
+            
+            # log the losses
+            self.writer.add_scalar("loss/policy", self.agent.loss_policy_v, self.episode_count)
+            self.writer.add_scalar("loss/value", self.agent.loss_value_v, self.episode_count)
+            self.writer.add_scalar("loss/entropy", self.agent.loss_entropy_v, self.episode_count)
+            loss_total = self.agent.loss_policy_v + self.agent.loss_value_v + self.agent.loss_entropy_v
+            self.writer.add_scalar("loss/total", loss_total, self.episode_count)
+
+            # log kl divergence
+            self.writer.add_scalar("kl_divergence", self.agent.kl_div_v, self.episode_count)
+
+            # log advantage
+            self.writer.add_scalar("advantage", self.agent.mean_adv, self.episode_count)
+
+            # report action probabilities to follow-up how policy evolves
+            per_action = list(zip(*self.agent.action_probs))
+            for idx in range(self.agent.env.action_space.n):
+                var_name = "action/" + str(idx)
+                value = np.mean(per_action[idx])
+                self.writer.add_scalar(var_name, value, self.episode_count)
 
 
 """ 
