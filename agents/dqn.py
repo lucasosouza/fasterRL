@@ -46,11 +46,11 @@ class DQN(ValueBasedAgent):
                 self.soft_update_tau = 5e-3
                 if "SOFT_UPDATE_TAU" in params:
                     self.soft_update_tau = params["SOFT_UPDATE_TAU"]
-            else: 
-                self.sync_target_frames = 2000
-                self.frame_count = 0
-                if "SYNC_TARGET_FRAMES" in params:
-                    self.sync_target_frames = params["SYNC_TARGET_FRAMES"]
+        else: 
+            self.sync_target_frames = 2000
+            self.frame_count = 0
+            if "SYNC_TARGET_FRAMES" in params:
+                self.sync_target_frames = params["SYNC_TARGET_FRAMES"]
 
         # initialize experience buffer
         self.buffer = ExperienceBuffer(experience_buffer_size)
@@ -144,10 +144,8 @@ class DQN(ValueBasedAgent):
                 self.soft_update_tau*local_param.data + (1-self.soft_update_tau)*target_param.data
             )
 
-    def calc_loss(self, batch):
-        """ Function optimized to exploit GPU parallelism by processing all batch samples with vector operations """
+    def unpack_batch(self, batch):
 
-        # unpack vectors of variables
         states, actions, rewards, dones, next_states = batch
         
         # creates tensors. and push them to device, if GPU is available, then uses GPU
@@ -155,8 +153,15 @@ class DQN(ValueBasedAgent):
         next_states_v = torch.tensor(next_states).to(self.device)
         rewards_v = torch.tensor(rewards).to(self.device)
         actions_v = torch.tensor(actions).to(self.device)
-        # dones is dealt differently. not sure why yet, maybe to specify is just a 1-0 tensor
         done_mask = torch.ByteTensor(dones).to(self.device)
+
+        return states_v, next_states_v, rewards_v, actions_v, done_mask
+
+    def calc_loss(self, batch):
+        """ Function optimized to exploit GPU parallelism by processing all batch samples with vector operations """
+
+        # unpack vectors of variables
+        states_v, next_states_v, rewards_v, actions_v, done_mask = self.unpack_batch(batch)
 
         # calculate state-action values
         # gather: select only the values for the actions taken

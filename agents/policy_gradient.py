@@ -10,6 +10,8 @@ import numpy as np
 from collections import deque
 import math
 
+### PG BASE CLASSES ##########
+
 class PolicyGradient(BaseAgent):
 
     def __init__(self, params, alias="agent"):
@@ -45,44 +47,6 @@ class PolicyGradient(BaseAgent):
         action = np.random.choice(len(action_probs), p=action_probs)
 
         return action
-
-
-class CrossEntropy(PolicyGradient):
-
-    def __init__(self, params, alias="agent"):
-        super(CrossEntropy, self).__init__(params, alias)
-
-        cutoff_percentile = 70
-        if "CUTOFF_PERCENTILE" in params:
-            cutoff_percentile = params["CUTOFF_PERCENTILE"]
-
-        episode_buffer_size = 16
-        if "EPISODE_BUFFER_SIZE" in params:
-            episode_buffer_size = params["EPISODE_BUFFER_SIZE"]
-
-        # initialize episode buffer
-        self.buffer = EpisodeBuffer(episode_buffer_size, cutoff_percentile)
-
-    def reset(self):
-        super(CrossEntropy, self).reset()
-        self.episode_reward = 0.0
-
-    def learn(self, action, next_state, reward, done):
-
-        self.episode_reward += reward
-        self.buffer.append_experience(ShortExperience(self.state, action))
-
-        if done:
-            buffer_full = self.buffer.append_episode(self.episode_reward)
-            # only learns when buffer is full
-            if buffer_full: 
-                states, actions = self.buffer.sample()
-                logits_v = self.calculate_action_probs(states, probs=False)
-                actions_v = torch.LongTensor(actions)
-                self.optimizer.zero_grad() # reset gradients
-                loss_v = nn.CrossEntropyLoss()(logits_v, actions_v) # calculate loss
-                loss_v.backward() # propagate gradients
-                self.optimizer.step() # change weights
 
 class Reinforce(PolicyGradient):
 
@@ -159,6 +123,7 @@ class Reinforce(PolicyGradient):
 
 class ContinuousReinforce(Reinforce):
 
+
     def set_environment(self, env):
         """ Need to rebuild this. Shouldn't call from 0, need to be able at least to reuse parent class. Change parent class method seems to be the best way of fixing this"""
 
@@ -166,15 +131,13 @@ class ContinuousReinforce(Reinforce):
         self.reset()
 
         # define action boundaries to clip network output
-        self.action_lower_bounds = self.env.action_space.low
-        self.action_upper_bounds = self.env.action_space.high
-        self.action_range = self.action_upper_bounds - self.action_lower_bounds
+        # self.action_lower_bounds = self.env.action_space.low
+        # self.action_upper_bounds = self.env.action_space.high
 
         self.net = self.network_type(env.observation_space.shape, env.action_space.shape,
             self.action_lower_bounds, self.action_range,
             device=self.device, random_seed=self.random_seed)
-        self.optimizer = optim.Adam(self.net.parameters(), lr=self.learning_rate)
-
+        self.optimizer = optim.Adam(self.net.parameters(), lr=self.learning_rate)        
 
     def select_action(self):
 
@@ -208,7 +171,10 @@ class ContinuousReinforce(Reinforce):
             except:
                 print("Null values in sigma. Considering variance as the maximum allowed range for actions")
                 action_values = np.random.normal(mu, np.ones(sigma.shape) * self.action_range)
-            action_values = np.clip(action_values, self.action_lower_bounds, self.action_upper_bounds)
+
+            # no need to clip any longer, since clipping is being done in the NN
+            # action_values = np.clip(action_values, self.action_lower_bounds, self.action_upper_bounds)
+
             return action_values
 
         return mu_v, var_v
@@ -234,12 +200,45 @@ class ContinuousReinforce(Reinforce):
         loss_v.backward() # propagate gradients
         self.optimizer.step() # change weights
 
-# what changes from discrete?
-# I no longer predict probabilities
-# I no longer sample
-# instead, I get the two values, mu and var
-# and sample from the gaussian distribution
-# it is not that different, it just changes how I choose the actions
+
+### PG WITH DISCRETE STATE SPACE ##########
+
+class CrossEntropy(PolicyGradient):
+
+    def __init__(self, params, alias="agent"):
+        super(CrossEntropy, self).__init__(params, alias)
+
+        cutoff_percentile = 70
+        if "CUTOFF_PERCENTILE" in params:
+            cutoff_percentile = params["CUTOFF_PERCENTILE"]
+
+        episode_buffer_size = 16
+        if "EPISODE_BUFFER_SIZE" in params:
+            episode_buffer_size = params["EPISODE_BUFFER_SIZE"]
+
+        # initialize episode buffer
+        self.buffer = EpisodeBuffer(episode_buffer_size, cutoff_percentile)
+
+    def reset(self):
+        super(CrossEntropy, self).reset()
+        self.episode_reward = 0.0
+
+    def learn(self, action, next_state, reward, done):
+
+        self.episode_reward += reward
+        self.buffer.append_experience(ShortExperience(self.state, action))
+
+        if done:
+            buffer_full = self.buffer.append_episode(self.episode_reward)
+            # only learns when buffer is full
+            if buffer_full: 
+                states, actions = self.buffer.sample()
+                logits_v = self.calculate_action_probs(states, probs=False)
+                actions_v = torch.LongTensor(actions)
+                self.optimizer.zero_grad() # reset gradients
+                loss_v = nn.CrossEntropyLoss()(logits_v, actions_v) # calculate loss
+                loss_v.backward() # propagate gradients
+                self.optimizer.step() # change weights
 
 class MonteCarloReinforce(Reinforce):
 
@@ -257,21 +256,6 @@ class MonteCarloReinforce(Reinforce):
             states, actions, _ = zip(*self.transitions)
             self.calculate_loss_and_optimize(states, actions, values)
 
-class ContinuousMonteCarloReinforce(ContinuousReinforce):
-
-    def learn(self, action, next_state, reward, done):
-  
-        self.transitions.append((self.state, action, reward))
-
-        if done:        
-
-            values = self.calculate_qvalues()
-            # remove baseline
-            if self.baseline_qvalue:
-                values -= np.mean(values)
-
-            states, actions, _ = zip(*self.transitions)
-            self.calculate_loss_and_optimize(states, actions, values)
 
 class BatchReinforce(Reinforce):
     # implement a crude version to test, no buffer, then improve if ok
@@ -318,6 +302,23 @@ class BatchReinforce(Reinforce):
                 self.all_values = []
                 self.episodes = 0
 
+### PG WITH CONTINUOUS STATE SPACE ##########
+
+class ContinuousMonteCarloReinforce(ContinuousReinforce):
+
+    def learn(self, action, next_state, reward, done):
+  
+        self.transitions.append((self.state, action, reward))
+
+        if done:        
+
+            values = self.calculate_qvalues()
+            # remove baseline
+            if self.baseline_qvalue:
+                values -= np.mean(values)
+
+            states, actions, _ = zip(*self.transitions)
+            self.calculate_loss_and_optimiz
 
 class ContinuousBatchReinforce(ContinuousReinforce):
     # implement a crude version to test, no buffer, then improve if ok

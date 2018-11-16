@@ -119,16 +119,44 @@ class SimplePolicyNetwork(Network):
         # maybe the methods should go here in this network instead of someplace else
 
 
-class SimpleContinuousPolicyNetwork(Network):
+class ContinuousPolicyNetwork(Network):
 
-    def __init__(self, input_shape, actions_shape, action_lower_bounds,action_range, device="cpu", random_seed=42):
-        super(SimpleContinuousPolicyNetwork, self).__init__(device, random_seed)
+    def __init__(self, input_shape, action_space, device="cpu", random_seed=42):
+        super(ContinuousPolicyNetwork, self).__init__(device, random_seed)
 
+        # define action boundaries to clip network output
+        self.n_actions = action_space.shape[0]
+        action_lower_bounds = action_space.low
+        action_upper_bounds = action_space.high
 
         self.action_lower_bounds = torch.FloatTensor(action_lower_bounds)
-        self.action_mult_factor = torch.FloatTensor(action_range / 2.) # divided by range of tanh, 2
-        n_actions = actions_shape[0]
-        
+        action_range = action_upper_bounds - action_lower_bounds
+        self.action_mult_factor = torch.FloatTensor(action_range / 2.) # divided by range of tanh 
+
+    def adjust_output_range(self, x): 
+        """ Adjust output to the action range expected in the environment
+            Do I let it calculate gradients on this? yes, I would think so
+        """ 
+
+        # converts output of tanh to 0 to 2 range
+        x = x + 1.
+        # multiply by the range in env divided by range in neural network
+        x = x * self.action_mult_factor
+        # add lower bound of env range
+        x = x + self.action_lower_bounds
+
+        return x
+
+    def forward(self, x):
+        x = super(ContinuousPolicyNetwork, self).forward(x)
+
+        return self.adjust_output_range(x)
+
+class SimpleContinuousPolicyNetwork(ContinuousPolicyNetwork):
+
+    def __init__(self, input_shape, actions_shape, action_lower_bounds,action_range, device="cpu", random_seed=42):
+        super(SimpleContinuousPolicyNetwork, self).__init__(input_shape, action_space, device, random_seed)
+
         hidden_layer_neurons = 128
 
         # simple network for average case
@@ -139,16 +167,12 @@ class SimpleContinuousPolicyNetwork(Network):
         )
 
         self.mu = nn.Sequential(
-            nn.Linear(hidden_layer_neurons, n_actions),
+            nn.Linear(hidden_layer_neurons, self.n_actions),
             nn.Tanh()
         )
-        # tanh is pushing values to be between 1 and 0
-        # is that ok? only if I multiply it by the range before I take action
-        # then it makes more sense
-        # what about var?
 
         self.var = nn.Sequential(
-            nn.Linear(hidden_layer_neurons, n_actions),
+            nn.Linear(hidden_layer_neurons, self.n_actions),
             nn.Softplus()
         )
         
@@ -163,20 +187,6 @@ class SimpleContinuousPolicyNetwork(Network):
         x = self.base(x)
 
         return self.adjust_output_range(self.mu(x)), self.var(x)
-
-    def adjust_output_range(self, x_mu): 
-        """ Adjust output to the action range expected in the environment
-            Do I let it calculate gradients on this? yes, I would think so
-        """ 
-
-        # converts output of tanh to 0 to 2 range
-        x_mu = x_mu + 1.
-        # multiply by the range in env divided by range in neural network
-        x_mu = x_mu * self.action_mult_factor
-        # add lower bound of env range
-        x_mu = x_mu + self.action_lower_bounds
-
-        return x_mu, x_var
 
 
 class SimpleA2CNetwork(Network):
@@ -212,29 +222,42 @@ class SimpleA2CNetwork(Network):
         return self.policy(x), self.value(x)
 
 
-""""
-save this for DDPG, which is the next step apparently
+class DDPGActor(ContinuousPolicyNetwork):
 
-class SimpleA2CNetwork(Network):
-        super(SimpleA2CNetwork, self).__init__(device, random_seed)
+    def __init__(self, input_shape, action_space, device="cpu", random_seed=42):
 
-        hidden_layer_neurons = 128
+        super(DDPGActor, self).__init__(input_shape, action_space, device, random_seed)
 
-        self.base = nn.Sequential(
-            nn.Linear(input_shape[0], hidden_layer_neurons),
-            nn.ReLU()
+        n_vars_actions = action_space.shape[0]
+        n_vars_state = input_shape[0]
+ 
+        self.network = nn.Sequential(
+           nn.Linear(n_vars_state, 400), nn.ReLU(),
+           nn.Linear(400, 300), nn.ReLU(),
+           nn.Linear(300, n_vars_actions), nn.Tanh()
         )
 
-        self.actor_mu = nn.Sequential(
-            nn.Linear(hidden_layer_neurons, n_actions),
-            nn.Tanh()
+class DDPGCritic(Network):
+
+    def __init__(self, input_shape, action_shape, device="cpu", random_seed=42):
+        super(DDPGCritic, self).__init__(device, random_seed)
+
+        n_vars_actions = action_shape[0]
+        n_vars_state = input_shape[0]
+
+        self.obs_network = nn.Sequential(
+            nn.Linear(n_vars_state, 400), nn.ReLU()
         )
 
-        self.actor_var = nn.Sequential(
-            nn.Linear(hidden_layer_neurons, n_actions),
-            nn.Softplus() # why softplus?
+        self.out_network = nn.Sequential(
+            nn.Linear(400 + n_vars_actions, 300), nn.ReLU(),
+            nn.Linear(300,1)
         )
 
-        self.critic = nn.Linear(hidden_layer_neurons, 1)
+    def forward(self, x, actions):
 
-"""
+        obs = self.obs_network(x)
+        out = self.out_network(torch.cat([obs, actions], dim=1))
+
+        return out
+
