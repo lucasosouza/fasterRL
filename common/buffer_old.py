@@ -4,56 +4,11 @@ from collections import namedtuple, deque
 Experience = namedtuple('Experience', 
     field_names=['state', 'action', 'reward', 'done', 'new_state'])
 
-Transition = namedtuple('Transition', 
-    field_names=['state', 'action', 'reward'])
-
 ShortExperience = namedtuple('ShortExperience', 
     field_names=['state', 'action'])
 
 Episode = namedtuple('Episode',
     field_names=['reward', 'experiences'])
-
-class TransitionBuffer:
-    """ A transition buffer used for MonteCarlo or ND-steps """
-
-    def __init__(self, first_visit = False):
-        # buffer is a regular list, does not have a max size
-        self.buffer = []
-        self.first_visit = first_visit
-
-    def configure(self, first_visit):
-        self.first_visit = first_visit
-
-    def append(self, transition):
-        self.buffer.append(transition)
-
-    def calculate_value(self, gamma):
-        """ Calculate value according to some pre-specified n-step """
-
-        if not self.first_visit:
-            value = 0
-            for state, action, reward in self.buffer[::-1]:
-                value = reward + gamma * value
-                yield state, action, value
-
-        else:
-            # identify which states are first visit
-            visited_states = set()
-            first_visits = []
-            for state, action, reward in  self.buffer[::-1]:
-                if (state, action) not in visited_states:
-                    visited_states.add((state, action))
-                    first_visits.append(True)
-                else:
-                    first_visits.append(False)
-
-            # yield only if first visit
-            value = 0
-            for (state, action, reward), fv in reversed(list(zip(self.buffer, first_visits))):
-                value = reward + gamma * value
-                if fv:
-                    yield state, action, value
-
 
 class ExperienceBuffer:
     
@@ -152,12 +107,4 @@ class EpisodeBuffer:
         return np.array(states), np.array(actions)
 
 
-"""
-too generic
-    # def configure(**kwargs):
-    #     for k,v in kwargs.items():
-    #         self[k] = v
 
-
-
-"""

@@ -8,7 +8,7 @@ params = {
     "PLATFORM": "openai",
     "ENV_NAME": "FrozenLake-v0",
     "METHOD": "DiscreteQLearning",
-    "REPORTING_INTERVAL": 1000,
+    "REPORTING_INTERVAL": 100,
     "LOG_LEVEL": 1,
     "NUMBER_EPISODES_MEAN": 10,
     "MEAN_REWARD_BOUND": .8,
@@ -24,7 +24,8 @@ params = {
 params["ENV_NAME"] = "FrozenLakeNotSlippery-v0"
 
 results = []
-methods = ["QLearning", "Sarsa", "FirstVisitMonteCarlo", "EveryVisitMonteCarlo"]
+# methods = ["QLearning", "Sarsa", "FirstVisitMonteCarlo", "EveryVisitMonteCarlo"]
+methods = ["EveryVisitMonteCarlo", "FirstVisitMonteCarlo"]
 for method in methods:
     params["METHOD"] = method
     exp = UntilWinExperiment(params)
