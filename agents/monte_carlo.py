@@ -1,13 +1,13 @@
-from .td_learning import DiscreteTDLearning
-from fasterRL.common.buffer import TransitionBuffer
+from .td_learning import TDLearning
+from fasterRL.common.buffer import MCTransitionBuffer
 
-class MonteCarlo(DiscreteTDLearning):
+class MonteCarlo(TDLearning):
 
     def reset(self):
         super(MonteCarlo, self).reset()
 
         # recreate transition buffer every reset
-        self.buffer = TransitionBuffer()
+        self.buffer = MCTransitionBuffer()
 
     def set_environment(self, env):
         super(MonteCarlo, self).set_environment(env)

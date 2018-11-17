@@ -1,8 +1,10 @@
 import numpy as np
 from collections import namedtuple, deque
 
+# need to better organize this log of experience, transition, etc
+
 Experience = namedtuple('Experience', 
-    field_names=['state', 'action', 'reward', 'done', 'new_state'])
+    field_names=['state', 'action', 'reward', 'done', 'next_state'])
 
 Transition = namedtuple('Transition', 
     field_names=['state', 'action', 'reward'])
@@ -13,11 +15,58 @@ ShortExperience = namedtuple('ShortExperience',
 Episode = namedtuple('Episode',
     field_names=['reward', 'experiences'])
 
+
+# will do separate classes then merge if I see opportunity to merge
+
 class TransitionBuffer:
     """ A transition buffer used for MonteCarlo or ND-steps """
 
+    def __init__(self, n_steps=5, gamma=0.99):
+
+        self.buffer = deque(maxlen=n_steps)
+
+        discount_v = []
+        for i in range(n_steps):
+            discount_v.append(gamma**i)
+        self.discount_v = np.array(discount_v)
+
+        self.n_steps = n_steps
+
+    def full(self):
+        if len(self.buffer) == self.n_steps:
+            return True
+        return False
+
+    def append(self, experience):
+        self.buffer.append(experience)
+
+    def flush(self):
+        for _ in range(len(self.buffer)):
+            yield self.calculate_value()
+            self.buffer.popleft()
+
+    def calculate_value(self):
+        # will always look for beggining and end of buffer
+        state = self.buffer[0].state
+        action = self.buffer[0].action
+        next_state = self.buffer[-1].next_state
+        done = self.buffer[-1].done
+
+        # rewards. starts with zero and update according to experiences
+        rewards_v = np.zeros(self.n_steps)
+        rewards = map(lambda e:e.reward, self.buffer)
+        for idx, r in enumerate(rewards):
+            rewards_v[idx] = r
+
+        # multiply rewards with discount vector to get value
+        value = np.dot(self.discount_v, rewards_v)
+
+        return state, action, value, done, next_state
+
+class MCTransitionBuffer:
+    """ A transition buffer used for MonteCarlo or ND-steps """
+
     def __init__(self, first_visit = False):
-        # buffer is a regular list, does not have a max size
         self.buffer = []
         self.first_visit = first_visit
 
