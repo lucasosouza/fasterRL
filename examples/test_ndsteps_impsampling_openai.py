@@ -20,14 +20,17 @@ params = {
     "LEARNING_RATE": 0.3,
     "GAMMA": 0.99,
     "IMPORTANCE_SAMPLING": True,
+    "SAMPLING_PER_DECISION": True,
     "N_STEPS": 3
 }
 
 params["ENV_NAME"] = "FrozenLakeNotSlippery-v0"
 
 methods = ["NStepsQLearning", "NStepsSarsa"]
-n_steps = [3,5,10]
-imp_samplings = [True, False]
+n_steps = [5]
+imp_samplings = [True]
+# n_steps = [3,5,10]
+# imp_samplings = [True, False]
 
 results = []
 experiments = []
@@ -65,3 +68,10 @@ for method, result in zip(experiments, results):
 
 # summary all methods with importance sampling took a bit longer to converge in this environment.
 
+# with importance sampling
+# Method NStepsQLearning-5-True took an average of 278.00 episodes
+# Method NStepsSarsa-5-True took an average of 299.50 episodes
+
+# wuth per decision
+# Method NStepsQLearning-5-True took an average of 754.27 episodes
+# Method NStepsSarsa-5-True took an average of 776.73 episodes

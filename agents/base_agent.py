@@ -113,7 +113,6 @@ class ValueBasedAgent(BaseAgent):
 
         # select all possible actions
         possible_actions = list(self.qtable[state].items())
-
         # shuffle before sorting, to ensure randomness in case of tie
         random.shuffle(possible_actions)
         # sort and get first - can also use argmax

@@ -32,6 +32,9 @@ class TransitionBuffer:
 
         self.n_steps = n_steps
 
+    def all(self):
+        return list(self.buffer)
+
     def full(self):
         if len(self.buffer) == self.n_steps:
             return True
@@ -42,29 +45,14 @@ class TransitionBuffer:
 
     def flush(self):
         for _ in range(len(self.buffer)):
-            yield self.calculate_value()
+            yield self.all()
             self.buffer.popleft()
 
-    def calculate_value(self):
-        # will always look for beggining and end of buffer
-        state = self.buffer[0].state
-        action = self.buffer[0].action
-        next_state = self.buffer[-1].next_state
-        done = self.buffer[-1].done
-
-        # rewards. starts with zero and update according to experiences
-        rewards_v = np.zeros(self.n_steps)
-        rewards = map(lambda e:e.reward, self.buffer)
-        for idx, r in enumerate(rewards):
-            rewards_v[idx] = r
-
-        # multiply rewards with discount vector to get value
-        value = np.dot(self.discount_v, rewards_v)
-
-        return state, action, value, done, next_state
 
 class MCTransitionBuffer:
     """ A transition buffer used for MonteCarlo or ND-steps """
+
+    # challenge: to insert logic on importance sampling here on buffer
 
     def __init__(self, first_visit = False):
         self.buffer = []
@@ -206,6 +194,57 @@ too generic
     # def configure(**kwargs):
     #     for k,v in kwargs.items():
     #         self[k] = v
+
+
+old version of nd-steps transition did calculation in the buffer
+reconsider when doing DQN where it should stay
+
+class TransitionBuffer:
+
+    def __init__(self, n_steps=5, gamma=0.99):
+
+        self.buffer = deque(maxlen=n_steps)
+
+        discount_v = []
+        for i in range(n_steps):
+            discount_v.append(gamma**i)
+        self.discount_v = np.array(discount_v)
+
+        self.n_steps = n_steps
+
+    def __call__(self):
+        return self.buffer
+
+    def full(self):
+        if len(self.buffer) == self.n_steps:
+            return True
+        return False
+
+    def append(self, experience):
+        self.buffer.append(experience)
+
+    def flush(self):
+        for _ in range(len(self.buffer)):
+            yield self.calculate_value()
+            self.buffer.popleft()
+
+    def calculate_value(self):
+        # will always look for beggining and end of buffer
+        state = self.buffer[0].state
+        action = self.buffer[0].action
+        next_state = self.buffer[-1].next_state
+        done = self.buffer[-1].done
+
+        # rewards. starts with zero and update according to experiences
+        rewards_v = np.zeros(self.n_steps)
+        rewards = map(lambda e:e.reward, self.buffer)
+        for idx, r in enumerate(rewards):
+            rewards_v[idx] = r
+
+        # multiply rewards with discount vector to get value
+        value = np.dot(self.discount_v, rewards_v)
+
+        return state, action, value, done, next_state
 
 
 
