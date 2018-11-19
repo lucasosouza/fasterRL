@@ -1,6 +1,6 @@
 from .base_agent import ValueBasedAgent
 from fasterRL.common.network import *
-from fasterRL.common.buffer import Experience, ExperienceBuffer, PrioReplayBuffer
+from fasterRL.common.buffer import Experience, ExperienceBuffer
 
 import torch
 import torch.optim as optim
@@ -52,28 +52,8 @@ class DQN(ValueBasedAgent):
             if "SYNC_TARGET_FRAMES" in params:
                 self.sync_target_frames = params["SYNC_TARGET_FRAMES"]
 
-        # add parameters for prioritized replay
-        self.prioritized_replay = False
-        if "PRIORITIZED_REPLAY" in params:
-            self.prioritized_replay = params["PRIORITIZED_REPLAY"]
-
-        if self.prioritized_replay:
-            self.prio_replay_alpha = 0.6
-            if "PRIO_REPLAY_ALPHA" in params:
-                self.prio_replay_alpha = params["PRIO_REPLAY_ALPHA"]
-            self.prio_replay_beta = 0.4
-            if "PRIO_REPLAY_BETA_START" in params:
-                self.prio_replay_beta = params["PRIO_REPLAY_BETA_START"]
-            prio_replay_beta_frames = 5000
-            if "PRIO_REPLAY_BETA_FRAMES" in params:
-                prio_replay_beta_frames = params["PRIO_REPLAY_BETA_FRAMES"]
-            self.prio_replay_beta_increase = (1.0 - self.prio_replay_beta) / prio_replay_beta_frames
-
         # initialize experience buffer
-        if self.prioritized_replay:
-            self.buffer = PrioReplayBuffer(experience_buffer_size, self.prio_replay_alpha)            
-        else:
-            self.buffer = ExperienceBuffer(experience_buffer_size)
+        self.buffer = ExperienceBuffer(experience_buffer_size)
  
     def set_environment(self, env):
         super(DQN, self).set_environment(env)
@@ -131,31 +111,6 @@ class DQN(ValueBasedAgent):
             # optimize
             self.optimizer.step()
 
-    def learn(self, action, next_state, reward, done):
-
-        # append experience to buffer
-        self.buffer.append(Experience(self.state, action, reward, done, next_state))
-
-        ## learn when there are enough batch samples
-        ## ideally I should accumulate a mass of experiences before starting to learn
-        if len(self.buffer) > self.replay_batch_size:
-            # zero gradients
-            self.optimizer.zero_grad()
-            # sample from buffer
-            batch, batch_indices, batch_weights = self.buffer.sample(self.replay_batch_size, self.prio_replay_beta)
-            # calculate loss
-            loss_v, sample_prios_v = self.calc_loss(batch, batch_weights)
-            # calculate gradients
-            loss_v.backward()
-            # gradient clipping
-            if self.gradient_clipping:
-                nn.utils.clip_grad_norm_(self.net.parameters(), self.grad_l2_clip)
-            # optimize
-            self.optimizer.step()
-            # update priorities on buffer
-            self.buffer.update_priorities(batch_indices, sample_prios_v.data.cpu().numpy())
-
-
     def update_params(self):
         super(DQN, self).update_params()
 
@@ -167,10 +122,6 @@ class DQN(ValueBasedAgent):
             if self.frame_count == self.sync_target_frames:
                 self.hard_update_target_network()
                 self.frame_count = 0
-
-        # update beta
-        if self.prioritized_replay:
-            self.prio_replay_beta += self.prio_replay_beta_increase
 
     def hard_update_target_network(self):
         """ Update every X steps """
@@ -244,46 +195,6 @@ class DQN(ValueBasedAgent):
         loss = nn.MSELoss()(state_action_values, expected_state_action_values)
         
         return loss
-
-    def calc_loss(self, batch, batch_weights):
-
-        states_v, next_states_v, rewards_v, actions_v, done_mask = self.unpack_batch(batch)
-        batch_weights_v = torch.tensor(batch_weights).to(self.device)
-
-        # calculate state action values
-        state_action_values = self.net(states_v).gather(1, actions_v.unsqueeze(-1)).squeeze(-1)
-
-        # calculate next state action values
-        if self.double_qlearning:
-            # get q values with feed forward
-            next_q_vals_v = self.net(next_states_v)
-            # chooses greedy action from target net
-            _, next_state_action_v = torch.max(next_q_vals_v, dim=1)
-            # gets actions from 
-            next_state_values = \
-                self.tgt_net(next_states_v).gather(1, next_state_action_v.unsqueeze(-1)).squeeze(-1)
-        else:
-            next_state_values = self.tgt_net(next_states_v).max(1)[0]
-        # if is done, value of next state is set to 0. important correction
-        next_state_values[done_mask] = 0.0
-
-        # detach values from computation graph, to prevent gradients from flowing into neural net
-        next_state_values = next_state_values.detach()
-        
-        # calculate total value (Bellman approximation value)
-        expected_state_action_values = next_state_values * self.gamma + rewards_v
-
-        #### only here the function starts to change 
-        #### all the remaining preparation is the same 
-
-        # same MSE loss, but expression is written explicitly
-        # allow to apply weights and keep individual loss values for each sample
-        # these values will be passed to priority replay buffer to update priorities
-        losses_v = batch_weights_v * (state_action_values - expected_state_action_values) ** 2
-
-        # small values added to every loss to handle zero loss value situation (hence don't allow zero priority)
-        return losses_v.mean(), losses_v + 1e-5
-
 
 """
 TODO:

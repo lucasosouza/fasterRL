@@ -89,7 +89,7 @@ class ValueBasedAgent(BaseAgent):
         self.epsilon_final = 0.02
         self.epsilon_decay_last_frame = 1000
         if "EPSILON_START" in params:
-            self.epsilon_start = params["EPSILON_START"]
+            self.epsilon = params["EPSILON_START"]
         if "EPSILON_FINAL" in params:
             self.epsilon_final = params["EPSILON_FINAL"]            
         if "EPSILON_DECAY_LAST_FRAME" in params:

@@ -189,6 +189,69 @@ class EpisodeBuffer:
         return np.array(states), np.array(actions)
 
 
+class PrioReplayBuffer:
+    """ implementation from From Deep Reinforcement Learning Handson book """
+
+    def __init__(self, buf_size, prob_alpha=0.6):
+
+        self.prob_alpha = prob_alpha  
+        self.capacity = buf_size
+        self.pos = 0
+        self.buffer = []
+        self.priorities = np.zeros((buf_size, ), dtype=np.float32)
+
+    def __len__(self):
+        return len(self.buffer)
+
+    def append(self, experience):
+        """ Pull the given amount of transitions form the experience source object and store them in buffer """
+
+        # set experience to maximum priority when it enter the buffer
+        max_prio = self.priorities.max() if self.buffer else 1.0
+
+        if len(self.buffer) < self.capacity:
+            # if buffer not full, append new transition
+            self.buffer.append(experience)
+        else:
+            # otherwise overwrite last position
+            self.buffer[self.pos] = experience
+
+        # set priorities
+        self.priorities[self.pos] = max_prio
+
+        # adjust position - when ends, goes back to zero
+        self.pos = (self.pos + 1) % self.capacity
+
+    def sample(self, batch_size, beta=0.4):
+        """ Convert priorities to probabilities using alpha parameters """
+
+        # calculate probabilities
+        if len(self.buffer) == self.capacity:
+            prios = self.priorities
+        else:
+            prios = self.priorities[:self.pos]
+        probs = prios ** self.prob_alpha
+        probs /= probs.sum()
+
+        # with probabilities, sample buffer
+        indices = np.random.choice(len(self.buffer), batch_size, p=probs)
+        samples = zip(*[self.buffer[idx] for idx in indices])
+
+        # calculate weights
+        total = len(self.buffer)
+        weights = (total * probs[indices]) ** (-beta)
+        weights /= weights.max()
+
+        # also return indices, since they are required to update priorities for sampled items
+        return samples, indices, weights
+
+    def update_priorities(self, batch_indices, batch_priorities):
+        """ Update new priorities for the processed batch """
+
+        for idx, prio in zip(batch_indices, batch_priorities):
+           self.priorities[idx] = prio            
+
+
 """
 too generic
     # def configure(**kwargs):
