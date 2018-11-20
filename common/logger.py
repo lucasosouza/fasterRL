@@ -2,10 +2,11 @@ from time import time # should move import from here?
 from tensorboardX import SummaryWriter
 import os
 import numpy as np
+from termcolor import colored
 
 class BaseLogger():
 
-    def __init__(self, params, log_dir, agent, trial=""):
+    def __init__(self, params, log_dir, agent, trial="", color=-1):
         """
             LOG LEVELS:
             1 - report nothing, just run
@@ -14,6 +15,10 @@ class BaseLogger():
             4 - log step-wise variable
             5 - log specifics relevant for debugging
         """
+
+
+        colors = ['blue','red','green','cyan','yellow','magenta','grey','white']
+        self.color = colors[color]
 
         self.log_level = 2
         if "LOG_LEVEL" in params:
@@ -29,6 +34,9 @@ class BaseLogger():
         # initialize writers
         trial_dir = "".join([agent.alias, "-trial", str(trial)])            
         self.writer = SummaryWriter(log_dir=os.path.join(log_dir, trial_dir))
+
+    def cprint(self, content):
+        print(colored(content, self.color))
 
     def start_training(self):
         # controls number of episodes and frames. control time
@@ -83,7 +91,7 @@ class BaseLogger():
         if self.log_level > 1 :
 
             if self.episode_count % self.reporting_interval == 0:
-                print("Episode {} Mean Reward: {:.3f} Mean Steps: {:.3f} Speed: {:.3f} sec/ep Frame: {}".format(
+                self.cprint("Episode {} Mean Reward: {:.3f} Mean Steps: {:.3f} Speed: {:.3f} sec/ep Frame: {}".format(
                     self.episode_count, 
                     np.mean(self.rewards[-self.reporting_interval:]), 
                     np.mean(self.steps[-self.reporting_interval:]), 
@@ -101,8 +109,8 @@ class BaseLogger():
 
 class WinLogger(BaseLogger):
 
-    def __init__(self, params, log_dir, agent, trial=""):
-        super(WinLogger, self).__init__(params, log_dir, agent, trial)
+    def __init__(self, params, log_dir, agent, trial="", color=-1):
+        super(WinLogger, self).__init__(params, log_dir, agent, trial, color)
 
         # variables for until win experiment
         if "MEAN_REWARD_BOUND" in params:
@@ -123,7 +131,7 @@ class WinLogger(BaseLogger):
         if self.episode_count >= self.number_episodes_mean:
             if np.mean(self.rewards[-self.number_episodes_mean:]) >= self.mean_reward_bound:
                 if self.log_level > 1 and not self.completed:
-                    print("Problem solved in {} episodes".format(self.episode_count))
+                    self.cprint("Problem solved in {} episodes".format(self.episode_count))
                     self.completed = True
                 return True
         return False

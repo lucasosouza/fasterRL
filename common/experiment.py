@@ -59,14 +59,14 @@ class BaseExperiment:
         for trial in range(self.num_trials):
             self.run_trial(trial)
 
-    def init_instances(self, trial, alias="agent"):
+    def init_instances(self, trial, alias="agent", color=-1):
 
         # instantiate env, logger and agent for every trial
         env = self.env_method(self.params) # ok 
         agent = self.agent_method(self.params) # ok
         agent.set_environment(env)
         agent.set_alias(alias)
-        logger = self.logger_method(self.params, self.log_dir, agent, trial) # ok
+        logger = self.logger_method(self.params, self.log_dir, agent, trial, color) # ok
 
         return AgentExperiment(env, agent, logger)
 
@@ -176,7 +176,7 @@ class MultiAgentExperiment(UntilWinExperiment):
 
         # initialize all agents
         for idx_a in range(self.num_agents):
-            agents.append(self.init_instances(trial, alias="agent"+str(idx_a)))
+            agents.append(self.init_instances(trial, alias="agent"+str(idx_a), color=idx_a))
 
         # start training
         for a in agents:
@@ -196,14 +196,6 @@ class MultiAgentExperiment(UntilWinExperiment):
             a.logger.end_training()
     
         return [a.logger.episode_count for a in agents]
-
-
-
-
-
-
-
-
 
 
 
