@@ -115,12 +115,16 @@ class WinLogger(BaseLogger):
         else:
             print("Until win requires a NUMBER_EPISODES_MEAN to be defined")
 
+        # extra flag to avoid double reporting in multiagent. fix it later
+        self.completed = False
+
     def is_solved(self):
 
         if self.episode_count >= self.number_episodes_mean:
             if np.mean(self.rewards[-self.number_episodes_mean:]) >= self.mean_reward_bound:
-                if self.log_level > 1 :
+                if self.log_level > 1 and not self.completed:
                     print("Problem solved in {} episodes".format(self.episode_count))
+                    self.completed = True
                 return True
         return False
 

@@ -2,10 +2,9 @@ from numpy import random
 
 class BaseAgent():
 
-    def __init__(self, params, alias="agent"):
+    def __init__(self, params):
 
         # which functions and variables need to be initialized in the base agent?
-        self.alias = alias
         self.params = params
 
         # configuration parameters
@@ -39,6 +38,9 @@ class BaseAgent():
     def set_environment(self, env):
         self.env = env
         self.reset()
+
+    def set_alias(self, alias):
+        self.alias = alias
 
     def reset(self):
         self.state = self.env.reset()
@@ -81,8 +83,8 @@ class BaseAgent():
 
 class ValueBasedAgent(BaseAgent):
 
-    def __init__(self, params, alias="agent"):
-        super(ValueBasedAgent, self).__init__(params, alias)
+    def __init__(self, params):
+        super(ValueBasedAgent, self).__init__(params)
 
         # unpack specific variables for algorithm
         self.epsilon = 1.0

@@ -6,6 +6,10 @@ import os
 from datetime import datetime
 from time import sleep
 import json
+from collections import namedtuple
+
+
+AgentExperiment = namedtuple('AgentExperiment', field_names=['env', 'agent', 'logger'])
 
 class BaseExperiment:
 
@@ -55,15 +59,16 @@ class BaseExperiment:
         for trial in range(self.num_trials):
             self.run_trial(trial)
 
-    def init_instances(self, trial):
+    def init_instances(self, trial, alias="agent"):
 
         # instantiate env, logger and agent for every trial
         env = self.env_method(self.params) # ok 
         agent = self.agent_method(self.params) # ok
         agent.set_environment(env)
+        agent.set_alias(alias)
         logger = self.logger_method(self.params, self.log_dir, agent, trial) # ok
 
-        return env, agent, logger
+        return AgentExperiment(env, agent, logger)
 
     def run_trial(self, trial):
 
@@ -127,7 +132,85 @@ class UntilWinExperiment(BaseExperiment):
         return sum(all_trial_episodes)/len(all_trial_episodes)
 
 
+
+class MultiAgentExperiment(UntilWinExperiment):
+    """ Two or more agents plays sequentially 
+        Modifications are done only to run and run trial functions
+    """
+
+
+    def __init__(self, params):
+        super(MultiAgentExperiment, self).__init__(params)
+
+        # unpack params
+        self.num_agents = 1
+        if "NUM_AGENTS" in self.params:
+            self.num_agents = self.params["NUM_AGENTS"]
+
+    def run(self):
+        """ Modified to return the average number of episodes to finish 
+            If not finished, return max (an oversimplification)
+
+            Adaptations for multiagent.
+        """
+
+        all_trial_episodes = []
+        for idx_a in range(self.num_agents):
+            all_trial_episodes.append([])
+
+        for trial in range(self.num_trials):
+            multiagent_num_episodes = self.run_trial(trial)
+            for idx_a, num_episodes in enumerate(multiagent_num_episodes):
+                all_trial_episodes[idx_a].append(num_episodes)
+
+        return [sum(l)/len(l) for l in all_trial_episodes]  
+
+    def run_trial(self, trial):
+        """ Modified to run until problem is solved or number of max episodes is reached
+
+            Adaptations to multiagent. 
+            (loops are fast while agents number is low, hence are repeated to make the code more readable)
+        """
+
+        agents = []
+
+        # initialize all agents
+        for idx_a in range(self.num_agents):
+            agents.append(self.init_instances(trial, alias="agent"+str(idx_a)))
+
+        # start training
+        for a in agents:
+            a.logger.start_training()
+
+        # alternate between agents to run episodes
+        solved = {}
+        while sum(solved.values()) != len(agents):
+            for a in agents:
+                if not a.logger.is_solved() and a.logger.episode_count < self.max_episodes:
+                    self.run_episode(a.agent, a.logger)
+                else:
+                    solved[a.agent.alias] = True
+
+        # end training
+        for a in agents:
+            a.logger.end_training()
+    
+        return [a.logger.episode_count for a in agents]
+
+
+
+
+
+
+
+
+
+
+
+
+
 """
+
 to consider it later:
 
 # this is not thought of to run in parallel

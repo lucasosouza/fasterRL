@@ -9,8 +9,8 @@ import numpy as np
 
 class DQN(ValueBasedAgent):
 
-    def __init__(self, params, alias="agent"):
-        super(DQN, self).__init__(params, alias)
+    def __init__(self, params):
+        super(DQN, self).__init__(params)
 
         experience_buffer_size = 1000
         if "EXPERIENCE_BUFFER_SIZE" in params:

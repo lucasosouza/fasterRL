@@ -12,8 +12,8 @@ import numpy as np
 
 class DDPG(ValueBasedAgent):
 
-    def __init__(self, params, alias="agent"):
-        super(DDPG, self).__init__(params, alias)
+    def __init__(self, params):
+        super(DDPG, self).__init__(params)
 
         experience_buffer_size = 1000
         if "EXPERIENCE_BUFFER_SIZE" in params:

@@ -5,8 +5,8 @@ from time import sleep
 
 class TDLearning(ValueBasedAgent):
 
-    def __init__(self, params, alias="agent"):
-        super(TDLearning, self).__init__(params, alias)
+    def __init__(self, params):
+        super(TDLearning, self).__init__(params)
 
         self.td_type = "QLearning"
         if "TD_TYPE" in params:
@@ -58,8 +58,8 @@ class TDLearning(ValueBasedAgent):
 
 class NStepsTDLearning(TDLearning):
 
-    def __init__(self, params, alias="agent"):
-        super(NStepsTDLearning, self).__init__(params, alias)
+    def __init__(self, params):
+        super(NStepsTDLearning, self).__init__(params)
 
         self.n_steps = 5
         if "N_STEPS" in params:
@@ -168,13 +168,13 @@ class NStepsQLearning(NStepsTDLearning):
     pass
 
 class Sarsa(TDLearning):
-    def __init__(self, params, alias="agent"):
-        super(Sarsa, self).__init__(params, alias)
+    def __init__(self, params):
+        super(Sarsa, self).__init__(params)
         self.td_type = "SARSA"
 
 class NStepsSarsa(NStepsTDLearning):
-    def __init__(self, params, alias="agent"):
-        super(NStepsSarsa, self).__init__(params, alias)
+    def __init__(self, params):
+        super(NStepsSarsa, self).__init__(params)
         self.td_type = "SARSA"
 
 

@@ -9,8 +9,8 @@ import numpy as np
 
 class CrossEntropy(BaseAgent):
 
-    def __init__(self, params, alias="agent"):
-        super(CrossEntropy, self).__init__(params, alias)
+    def __init__(self, params):
+        super(CrossEntropy, self).__init__(params)
 
         cutoff_percentile = 70
         if "CUTOFF_PERCENTILE" in params:

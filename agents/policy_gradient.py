@@ -14,8 +14,8 @@ import math
 
 class PolicyGradient(BaseAgent):
 
-    def __init__(self, params, alias="agent"):
-        super(PolicyGradient, self).__init__(params, alias)
+    def __init__(self, params):
+        super(PolicyGradient, self).__init__(params)
 
         # type of network
         self.network_type = SimplePolicyNetwork
@@ -50,8 +50,8 @@ class PolicyGradient(BaseAgent):
 
 class Reinforce(PolicyGradient):
 
-    def __init__(self, params, alias="agent"):
-        super(Reinforce, self).__init__(params, alias)
+    def __init__(self, params):
+        super(Reinforce, self).__init__(params)
 
         # baseline
         self.baseline_qvalue = False
@@ -205,8 +205,8 @@ class ContinuousReinforce(Reinforce):
 
 class CrossEntropy(PolicyGradient):
 
-    def __init__(self, params, alias="agent"):
-        super(CrossEntropy, self).__init__(params, alias)
+    def __init__(self, params):
+        super(CrossEntropy, self).__init__(params)
 
         cutoff_percentile = 70
         if "CUTOFF_PERCENTILE" in params:
@@ -260,8 +260,8 @@ class MonteCarloReinforce(Reinforce):
 class BatchReinforce(Reinforce):
     # implement a crude version to test, no buffer, then improve if ok
 
-    def __init__(self, params, alias="agent"):
-        super(BatchReinforce, self).__init__(params, alias)
+    def __init__(self, params):
+        super(BatchReinforce, self).__init__(params)
 
         self.episode_buffer_size = 16
         if "EPISODE_BUFFER_SIZE" in params:
@@ -323,8 +323,8 @@ class ContinuousMonteCarloReinforce(ContinuousReinforce):
 class ContinuousBatchReinforce(ContinuousReinforce):
     # implement a crude version to test, no buffer, then improve if ok
 
-    def __init__(self, params, alias="agent"):
-        super(ContinuousReinforce, self).__init__(params, alias)
+    def __init__(self, params):
+        super(ContinuousReinforce, self).__init__(params)
 
         self.episode_buffer_size = 16
         if "EPISODE_BUFFER_SIZE" in params:
