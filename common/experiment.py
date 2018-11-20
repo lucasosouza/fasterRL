@@ -48,6 +48,14 @@ class BaseExperiment:
         if "NUM_EPISODES" in self.params:
             self.num_episodes = self.params["NUM_EPISODES"]
 
+        # also uses a log level, for things above the agent level
+        self.log_level = 2
+        if "LOG_LEVEL" in params:
+            self.log_level = params["LOG_LEVEL"]            
+        self.reporting_interval = 1
+        if "REPORTING_INTERVAL" in params:
+            self.reporting_interval = params["REPORTING_INTERVAL"]
+
         # define methods for agent, env and logger
         self.agent_method = eval(params["METHOD"])
         self.env_method = BaseEnv
@@ -138,7 +146,6 @@ class MultiAgentExperiment(UntilWinExperiment):
         Modifications are done only to run and run trial functions
     """
 
-
     def __init__(self, params):
         super(MultiAgentExperiment, self).__init__(params)
 
@@ -146,6 +153,25 @@ class MultiAgentExperiment(UntilWinExperiment):
         self.num_agents = 1
         if "NUM_AGENTS" in self.params:
             self.num_agents = self.params["NUM_AGENTS"]
+
+        self.sharing = False
+        if "SHARING" in self.params:
+            self.sharing = self.params["SHARING"]
+
+        self.focused_sharing = False
+        if "FOCUSED_SHARING" in self.params:
+            self.focused_sharing = self.params["FOCUSED_SHARING"]
+
+        if self.sharing or self.focused_sharing:
+            self.share_batch_size = 128
+            if "SHARE_BATCH_SIZE" in self.params:
+                self.share_batch_size = self.params["SHARE_BATCH_SIZE"]
+
+        if self.focused_sharing:
+            self.sharing = False # turn of regular sharing, one or the other
+            self.focused_sharing_threshold = 3
+            if "FOCUSED_SHARING_THRESHOLD" in self.params:
+                self.focused_sharing_threshold = self.params["FOCUSED_SHARING_THRESHOLD"]
 
     def run(self):
         """ Modified to return the average number of episodes to finish 
@@ -183,13 +209,18 @@ class MultiAgentExperiment(UntilWinExperiment):
             a.logger.start_training()
 
         # alternate between agents to run episodes
-        solved = {}
-        while sum(solved.values()) != len(agents):
+        while sum([a.agent.completed for a in agents]) != len(agents):
+            # one round of training
             for a in agents:
                 if not a.logger.is_solved() and a.logger.episode_count < self.max_episodes:
                     self.run_episode(a.agent, a.logger)
                 else:
-                    solved[a.agent.alias] = True
+                    a.agent.completed = True
+            # one round of experience sharing
+            if self.sharing:
+                self.share([a.agent for a in agents])
+            elif self.focused_sharing:
+                self.focus_share([a.agent for a in agents])
 
         # end training
         for a in agents:
@@ -197,8 +228,72 @@ class MultiAgentExperiment(UntilWinExperiment):
     
         return [a.logger.episode_count for a in agents]
 
+    def share(self, agents):
+        """ For now accomodates two agents. Increase functionalities later 
+            can make this for N number of agents, but need to define rules.
+            Ideally should not talk directly to buffer
+        """
 
+        tb_sizes = [0, 0]
+        # agent 1 requests
+        student, teacher = agents[0], agents[1]
+        if not student.completed:
+            transfer_batch = teacher.buffer.select_batch(self.share_batch_size)
+            student.buffer.receive(transfer_batch)
+            tb_sizes[0] = len(transfer_batch)
 
+        # agent 2 requests
+        student, teacher = agents[1], agents[0]
+        if not student.completed:
+            transfer_batch = teacher.buffer.select_batch(self.share_batch_size)
+            student.buffer.receive(transfer_batch)
+            tb_sizes[1] = len(transfer_batch)
+
+        # logging should be done by logger preferrably
+        if self.log_level > 1:
+            print("Number of experiences transferred: {}, {}".format(tb_sizes[0], tb_sizes[1]))
+
+    # need a new method for focused experience sharing
+    def focus_share(self, agents):
+        """ For now accomodates two agents. Increase functionalities later 
+            can make this for N number of agents, but need to define rules.
+            Ideally should not talk directly to buffer
+
+            Difference from share: student has a mask
+            This mask is used to let the teacher nows which experiences matter the most
+        """
+
+        tb_sizes = [0, 0]
+        # agent 1 requests
+        student, teacher = agents[0], agents[1]
+        if not student.completed:
+            transfer_mask = student.buffer.identify_unexplored(threshold=self.focused_sharing_threshold)
+            transfer_batch = teacher.buffer.select_batch_with_mask(self.share_batch_size, transfer_mask)
+            student.buffer.receive(transfer_batch)
+            tb_sizes[0] = len(transfer_batch)
+
+        # agent 2 requests
+        student, teacher = agents[1], agents[0]
+        if not student.completed:
+            transfer_mask = student.buffer.identify_unexplored(threshold=self.focused_sharing_threshold)
+            transfer_batch = teacher.buffer.select_batch_with_mask(self.share_batch_size, transfer_mask)
+            student.buffer.receive(transfer_batch)
+            tb_sizes[1] = len(transfer_batch)
+
+        # logging should be done by logger preferrably
+        if self.log_level > 1:
+            print("Number of experiences transferred: {}, {}".format(tb_sizes[0], tb_sizes[1]))
+
+        # programming is done here 
+        # move to buffer
+        # I need to implement two functions 
+        # a request share
+        # and a select batch with mask
+
+        # that requires a new type of exp buffer 
+        # when I init agent DQN, I should now that if it asks for focused sharing
+        # it will need a different type of buffer
+        # but the API will remain the same
 
 
 """

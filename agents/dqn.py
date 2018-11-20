@@ -1,6 +1,6 @@
 from .base_agent import ValueBasedAgent
 from fasterRL.common.network import *
-from fasterRL.common.buffer import Experience, ExperienceBuffer, PrioReplayBuffer
+from fasterRL.common.buffer import Experience, ExperienceBuffer, PrioReplayBuffer, ExperienceBufferGrid
 
 import torch
 import torch.optim as optim
@@ -69,9 +69,16 @@ class DQN(ValueBasedAgent):
                 prio_replay_beta_frames = params["PRIO_REPLAY_BETA_FRAMES"]
             self.prio_replay_beta_increase = (1.0 - self.prio_replay_beta) / prio_replay_beta_frames
 
+        # add focused sharing
+        self.focused_sharing = False
+        if "FOCUSED_SHARING" in self.params:
+            self.focused_sharing = self.params["FOCUSED_SHARING"]
+
         # initialize experience buffer
         if self.prioritized_replay:
-            self.buffer = PrioReplayBuffer(experience_buffer_size, self.prio_replay_alpha)            
+            self.buffer = PrioReplayBuffer(experience_buffer_size, self.prio_replay_alpha)
+        elif self.focused_sharing:
+            self.buffer = ExperienceBufferGrid(experience_buffer_size)
         else:
             self.buffer = ExperienceBuffer(experience_buffer_size)
  
@@ -84,6 +91,10 @@ class DQN(ValueBasedAgent):
         self.tgt_net = self.network_type(env.observation_space.shape, env.action_space.n, 
             device=self.device, random_seed=self.random_seed)
         self.optimizer = optim.Adam(self.net.parameters(), lr=self.learning_rate)
+
+        # update buffer if using focused sharing
+        if self.focused_sharing:
+            self.buffer.set_grid(env.observation_space, env.action_space)
 
     def select_best_action(self, state):
 
@@ -117,43 +128,45 @@ class DQN(ValueBasedAgent):
         ## learn when there are enough batch samples
         ## ideally I should accumulate a mass of experiences before starting to learn
         if len(self.buffer) > self.replay_batch_size:
-            # zero gradients
-            self.optimizer.zero_grad()
-            # sample from buffer
-            batch = self.buffer.sample(self.replay_batch_size)
-            # calculate loss
-            loss_t = self.calc_loss(batch)
-            # calculate gradients
-            loss_t.backward()
-            # gradient clipping
-            if self.gradient_clipping:
-                nn.utils.clip_grad_norm_(self.net.parameters(), self.grad_l2_clip)
-            # optimize
-            self.optimizer.step()
+            # different type of learning depending on using or not priorities
+            if self.prioritized_replay:
+                self.batch_learn_with_priorities(action, next_state, reward, done)
+            else:
+                self.batch_learn(action, next_state, reward, done)
 
-    def learn(self, action, next_state, reward, done):
+    def batch_learn(self, action, next_state, reward, done):
 
-        # append experience to buffer
-        self.buffer.append(Experience(self.state, action, reward, done, next_state))
+        # zero gradients
+        self.optimizer.zero_grad()
+        # sample from buffer
+        batch = self.buffer.sample(self.replay_batch_size)
+        # calculate loss
+        loss_t = self.calc_loss(batch)
+        # calculate gradients
+        loss_t.backward()
+        # gradient clipping
+        if self.gradient_clipping:
+            nn.utils.clip_grad_norm_(self.net.parameters(), self.grad_l2_clip)
+        # optimize
+        self.optimizer.step()        
 
-        ## learn when there are enough batch samples
-        ## ideally I should accumulate a mass of experiences before starting to learn
-        if len(self.buffer) > self.replay_batch_size:
-            # zero gradients
-            self.optimizer.zero_grad()
-            # sample from buffer
-            batch, batch_indices, batch_weights = self.buffer.sample(self.replay_batch_size, self.prio_replay_beta)
-            # calculate loss
-            loss_v, sample_prios_v = self.calc_loss(batch, batch_weights)
-            # calculate gradients
-            loss_v.backward()
-            # gradient clipping
-            if self.gradient_clipping:
-                nn.utils.clip_grad_norm_(self.net.parameters(), self.grad_l2_clip)
-            # optimize
-            self.optimizer.step()
-            # update priorities on buffer
-            self.buffer.update_priorities(batch_indices, sample_prios_v.data.cpu().numpy())
+    def batch_learn_with_priorities(self, action, next_state, reward, done):
+
+        # zero gradients
+        self.optimizer.zero_grad()
+        # sample from buffer
+        batch, batch_indices, batch_weights = self.buffer.sample(self.replay_batch_size, self.prio_replay_beta)
+        # calculate loss
+        loss_v, sample_prios_v = self.calc_loss_with_priorities(batch, batch_weights)
+        # calculate gradients
+        loss_v.backward()
+        # gradient clipping
+        if self.gradient_clipping:
+            nn.utils.clip_grad_norm_(self.net.parameters(), self.grad_l2_clip)
+        # optimize
+        self.optimizer.step()
+        # update priorities on buffer
+        self.buffer.update_priorities(batch_indices, sample_prios_v.data.cpu().numpy())
 
 
     def update_params(self):
@@ -245,7 +258,7 @@ class DQN(ValueBasedAgent):
         
         return loss
 
-    def calc_loss(self, batch, batch_weights):
+    def calc_loss_with_priorities(self, batch, batch_weights):
 
         states_v, next_states_v, rewards_v, actions_v, done_mask = self.unpack_batch(batch)
         batch_weights_v = torch.tensor(batch_weights).to(self.device)

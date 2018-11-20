@@ -23,7 +23,7 @@ params = {
     "LOG_LEVEL": 2, #debugging level
     "NUMBER_EPISODES_MEAN": 10,
     "MEAN_REWARD_BOUND": 199,
-    "NUM_TRIALS": 10,
+    "NUM_TRIALS": 1,
     "MAX_EPISODES": 3000,
     "EPSILON_DECAY_LAST_FRAME": 4000, # 4000
     "EPSILON_START": 1.0,

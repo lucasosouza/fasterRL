@@ -35,6 +35,9 @@ class BaseAgent():
         # vars to be used in logger
         self.step_reward = 0
 
+        # completion status, useful for multiagent systems
+        self.completed = False 
+
     def set_environment(self, env):
         self.env = env
         self.reset()

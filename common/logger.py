@@ -106,7 +106,6 @@ class BaseLogger():
 
             self.episode_start = time()
 
-
 class WinLogger(BaseLogger):
 
     def __init__(self, params, log_dir, agent, trial="", color=-1):

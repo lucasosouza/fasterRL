@@ -1,5 +1,6 @@
 import numpy as np
 from collections import namedtuple, deque
+from functools import reduce
 
 # need to better organize this log of experience, transition, etc
 
@@ -91,51 +92,46 @@ class MCTransitionBuffer:
                 if fv:
                     yield state, action, value
 
-
 class ExperienceBuffer:
     
     def __init__(self, capacity):
         # initializes a deque
         self.buffer = deque(maxlen=capacity)
-        self.experiences_received = 0
         
     def __len__(self):
         return len(self.buffer)
     
     def receive(self, experiences):
-        """ Included for regular experience sharing """
-
-        self.experiences_received += len(experiences)
-        self.extend(experiences)
-
-    def extend(self, experiences):
-        """ Included for regular experience sharing """
+        """ Receive and append a batch of experience. """
 
         for experience in experiences:
             self.append(experience)
 
     def append(self, experience):
         self.buffer.append(experience)
+
+    def select_batch(self, batch_size): 
+
+        # restrict to number of experiences available
+        batch_size = min(batch_size, len(self.buffer))
+
+        # randomly select experiences
+        indices = np.random.choice(len(self.buffer), batch_size, replace=False)
+
+        return [self.buffer[idx] for idx in indices]
         
     def sample(self, batch_size):
         """ Sample from experience batch based on predetermined rules.
         Main 'meat' from the class is in this method """
-        
-        # pick random experiences in buffer, with no replacement
-        indices = np.random.choice(len(self.buffer), batch_size, replace=False)
-        
+                
+        batch = self.select_batch(batch_size)
+
         # break down into one tuple per variable of the experience
-        states, actions, rewards, dones, next_states = zip(*[self.buffer[idx] for idx in indices])
+        states, actions, rewards, dones, next_states = zip(*batch)
 
         # convert tuples into np arrays
         return np.array(states), np.array(actions), np.array(rewards, dtype=np.float32), \
             np.array(dones, dtype=np.uint8), np.array(next_states)
-
-    def sample_no_mask(self, batch_size):
-        """ Method for simple experience sharing """
-
-        indices = np.random.choice(len(self.buffer), batch_size, replace=False)
-        return [self.buffer[idx] for idx in indices]
 
 class EpisodeBuffer:
 
@@ -250,6 +246,112 @@ class PrioReplayBuffer:
 
         for idx, prio in zip(batch_indices, batch_priorities):
            self.priorities[idx] = prio            
+
+# will need to do 2
+# one with grid 
+# and another for image
+# these things have already been figured out, no need to figure it out again
+# just need to implement it what I've done in the previous library here
+
+# also need to implement these with prioreplay
+# seems to be a good time to start experimenting with decorators
+
+class ExperienceBufferGrid(ExperienceBuffer):
+    
+    def __init__(self, capacity, n_bins=10):
+    
+        # uses a list instead
+        self.buffer = []
+        self.capacity = capacity
+        self.n_bins = n_bins
+
+    def set_grid(self, observation_space, action_space):
+
+        # need access to the env to do this
+        # only action space and observation space are necessary however
+
+        n_states = observation_space.shape[0]
+        n_actions = action_space.n
+
+        # grid shape: discretize all state variables, then add action variable
+        grid_shape = [self.n_bins for _ in range(n_states)]
+        grid_shape.append(n_actions)
+
+        # store experiences by grid position, to facilitate recovery
+        # best way I could find to init an array with empty lists
+        m = np.zeros(np.product(grid_shape), dtype=list)
+        for v in range(len(m)):
+            m[v] = []
+        self.grid_experiences = m.reshape(grid_shape)
+        # grid occupancy is just a matrix with integers to count experiences
+        self.grid_occupancy = np.zeros(grid_shape, dtype=np.int32)
+
+        # calculate state bins
+        self.state_bins = []
+        for i in range(n_states):
+            low, high = observation_space.low[i], observation_space.high[i]
+            bins = np.histogram([low, high], bins=self.n_bins)[1]
+            self.state_bins.append(bins[1:])
+
+    def identify_unexplored(self, threshold):
+
+        mask = self.grid_occupancy <= threshold
+        return mask
+
+    def append(self, experience):
+
+        # calculate grid position
+        position_new = self.get_position(experience)
+        # append to buffer
+        self.buffer.append(experience)
+        # store in grid
+        self.grid_experiences[position_new].append(experience)
+        # add to counter
+        self.grid_occupancy[position_new] += 1
+
+        # check if a state needs to be removed
+        if len(self.buffer) > self.capacity:
+            # remove from buffer
+            removed_experience = self.buffer.pop(0)
+            # calculate position
+            position_old = self.get_position(removed_experience)
+            # remove from grid - will always be the first to be added
+            self.grid_experiences[position_old].pop(0)
+            # remove from count
+            self.grid_occupancy[position_old] -= 1
+
+    def get_position(self, experience):
+        """ Calculate position in grid for a given experience """
+
+        position = []
+        state = experience.state
+        action = experience.action
+        for idx in range(len(state)):
+            place = min(self.n_bins-1, int(np.digitize(state[idx], self.state_bins[idx], right=True)))
+            position.append(place)
+        position.append(action)
+
+        return tuple(position)            
+
+    def select_batch_with_mask(self, batch_size, mask):
+        """ Sample from experience batch based on predetermined rules.
+        Main 'meat' from the class is in this method """
+        
+        # filter only relevant experiences
+        selected_experiences = reduce(lambda x,y: x+y, list(self.grid_experiences[mask]))
+
+        # pick random experiences in buffer, with no replacement
+        selected_batch_size = min(batch_size, len(selected_experiences))
+
+        # only proceed if batch size is greater than 0
+        if selected_batch_size > 0:
+            # select indices
+            indices = np.random.choice(len(selected_experiences), selected_batch_size, replace=False)
+            return [selected_experiences[idx] for idx in indices]
+
+        # else return an empty array to standardize output
+        else:
+            return []
 
 
 """
