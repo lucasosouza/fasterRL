@@ -29,12 +29,17 @@ class BaseEnv():
             self.configure_gym()
         elif self.platform == "openai-atari":
             import gym
-            self.env = wrap_env_atari(gym.make(params["ENV_NAME"]))
+            self.env = gym.make(params["ENV_NAME"])
             self.configure_gym()
+            self.env = wrap_env_atari(self.env)
         elif self.platform == "malmo":
+            import gym
+            import gym.spaces            
             import gym_minecraft
-            self.env = wrap_env_malmo(gym.make(params["ENV_NAME"]))
+            self.env = gym.make(params["ENV_NAME"])
             self.configure_gym_minecraft()
+            self.env = wrap_env_malmo(self.env)
+
 
         self.step_vars = {}
         self.episode_vars = {}
@@ -66,16 +71,22 @@ class BaseEnv():
         self.action_space  = self.env.action_space
         self.observation_space = self.env.observation_space
 
+        # print("Observation Space: ", self.env.observation_space)
+        # print("Action Space: ", self.env.action_space)
+
+
         # think later about adding random seed, pros vs cons
         # self.env.seed(random_seed)
 
     def configure_gym_minecraft(self):
 
-        self.configure_gym()
         self.env.configure(client_pool=[('127.0.0.1', 10000), ('127.0.0.1', 10001)])
         self.env.configure(allowDiscreteMovement=["move", "turn"]) # , log_level="INFO")
         self.env.configure(videoResolution=[84,84])
         self.env.configure(stack_frames=4)
+
+        # get observation and action space after changes are applied
+        self.configure_gym()
 
     def reset(self):
         state = self.env.reset()

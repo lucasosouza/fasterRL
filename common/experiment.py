@@ -91,7 +91,7 @@ class BaseExperiment:
             self.run_episode(agent, logger)
         logger.end_training()
 
-    def run_episode(self, agent):
+    def run_episode(self, agent, logger):
 
         logger.start_episode()
         agent.reset()
@@ -246,24 +246,24 @@ class MultiAgentExperiment(UntilWinExperiment):
             Ideally should not talk directly to buffer
         """
 
-        tb_sizes = [0, 0]
-        # agent 1 requests
-        student, teacher = agents[0], agents[1]
-        if not student.completed:
-            transfer_batch = teacher.buffer.select_batch(self.share_batch_size)
-            student.buffer.receive(transfer_batch)
-            tb_sizes[0] = len(transfer_batch)
+        # init list to store all transfer batches
+        transfer_batches = []
 
-        # agent 2 requests
-        student, teacher = agents[1], agents[0]
-        if not student.completed:
-            transfer_batch = teacher.buffer.select_batch(self.share_batch_size)
-            student.buffer.receive(transfer_batch)
-            tb_sizes[1] = len(transfer_batch)
+        # select experiences to share
+        for agent in agents:
+            transfer_batch = agent.buffer.select_batch(self.share_batch_size)
+            transfer_batches.append(transfer_batch)
+
+        # receive experiences from all other agents
+        for idx_a, agent in enumerate(agents):
+            batch_indices = list(range(len(agents)))
+            batch_indices.pop(idx_a) # agent should not receive his own experiences
+            for idx_b in batch_indices:
+                agent.buffer.receive(transfer_batches[idx_b])
 
         # logging should be done by logger preferrably
         if self.log_level > 1:
-            print("Number of experiences transferred: {}, {}".format(tb_sizes[0], tb_sizes[1]))
+            print("Number of experiences transferred: {}".format([len(tb) for tb in transfer_batches]))
 
     # need a new method for focused experience sharing
     def focus_share(self, agents):
@@ -275,26 +275,54 @@ class MultiAgentExperiment(UntilWinExperiment):
             This mask is used to let the teacher nows which experiences matter the most
         """
 
-        tb_sizes = [0, 0]
-        # agent 1 requests
-        student, teacher = agents[0], agents[1]
-        if not student.completed:
-            transfer_mask = student.buffer.identify_unexplored(threshold=self.focused_sharing_threshold)
-            transfer_batch = teacher.buffer.select_batch_with_mask(self.share_batch_size, transfer_mask)
-            student.buffer.receive(transfer_batch)
-            tb_sizes[0] = len(transfer_batch)
+        # init list to store all transfer batches
+        transfer_batches = []
 
-        # agent 2 requests
-        student, teacher = agents[1], agents[0]
-        if not student.completed:
-            transfer_mask = student.buffer.identify_unexplored(threshold=self.focused_sharing_threshold)
-            transfer_batch = teacher.buffer.select_batch_with_mask(self.share_batch_size, transfer_mask)
-            student.buffer.receive(transfer_batch)
-            tb_sizes[1] = len(transfer_batch)
+        # select experiences to share
+        for agent in agents:
+            transfer_batch = agent.buffer.select_batch(self.share_batch_size)
+            transfer_batches.append(transfer_batch)
+
+        # receive experiences from all other agents
+        for idx_a, agent in enumerate(agents):
+            batch_indices = list(range(len(agents)))
+            batch_indices.pop(idx_a) # agent should not receive his own experiences
+            for idx_b in batch_indices:
+                agent.buffer.receive(transfer_batches[idx_b])
 
         # logging should be done by logger preferrably
         if self.log_level > 1:
-            print("Number of experiences transferred: {}, {}".format(tb_sizes[0], tb_sizes[1]))
+            print("Number of experiences transferred: {}".format([len(tb) for tb in transfer_batches]))
+
+
+        # agent makes a request to all other agents
+        # there is not a per se sharing available
+        # so first I need to gather the masks
+
+        transfer_requests = []
+        tb_sizes = []
+
+        # each agent puts forward a request wit experiences wanted
+        for agent in agents:
+            transfer_request = agent.buffer.identify_unexplored(threshold=self.focused_sharing_threshold)
+            transfer_requests.append(transfer_request)
+
+        # for each request
+        for idx_r, request in enumerate(transfer_requests):
+            requesting_agent = agents[idx_r]
+            num_experiences_received = 0
+            # all agents respond to request
+            for idx_a, agent in enumerate(agents):
+                # unless its the agents own request
+                if idx_r != idx_a:
+                    transfer_batch = agent.buffer.select_batch_with_mask(self.share_batch_size, request)
+                    requesting_agent.buffer.receive(transfer_batch)
+                    num_experiences_received += len(transfer_batch)
+            tb_sizes.append(num_experiences_received)
+
+        # logging should be done by logger preferrably
+        if self.log_level > 1:
+            print("Number of experiences transferred: {}".format(tb_sizes))
 
         # programming is done here 
         # move to buffer
