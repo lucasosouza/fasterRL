@@ -188,13 +188,13 @@ class EpisodeBuffer:
 class PrioReplayBuffer:
     """ implementation from From Deep Reinforcement Learning Handson book """
 
-    def __init__(self, capacity, prob_alpha=0.6):
+    def __init__(self, buf_size, prob_alpha=0.6):
 
         self.prob_alpha = prob_alpha  
-        self.capacity = capacity
+        self.capacity = buf_size
         self.pos = 0
         self.buffer = []
-        self.priorities = np.zeros((capacity, ), dtype=np.float32)
+        self.priorities = np.zeros((buf_size, ), dtype=np.float32)
 
     def __len__(self):
         return len(self.buffer)
@@ -294,35 +294,27 @@ class ExperienceBufferGrid(ExperienceBuffer):
         mask = self.grid_occupancy <= threshold
         return mask
 
-    def remove_from_grid(self, experience):
+    def append(self, experience):
 
-        position_old = self.get_position(removed_experience)
-        # remove from grid - will always be the first to be added
-        self.grid_experiences[position_old].pop(0)
-        # remove from count
-        self.grid_occupancy[position_old] -= 1
-
-    def add_to_grid(self, experience):
-
+        # calculate grid position
         position_new = self.get_position(experience)
+        # append to buffer
+        self.buffer.append(experience)
         # store in grid
         self.grid_experiences[position_new].append(experience)
         # add to counter
         self.grid_occupancy[position_new] += 1
 
-
-    def append(self, experience):
-        """ Adds to grid as well as appending to buffer. Remove if buffer full """ 
-
-        # append to buffer
-        self.buffer.append(experience)
-        self.add_to_grid(experience)
-
         # check if a state needs to be removed
         if len(self.buffer) > self.capacity:
             # remove from buffer
-            experience_to_delete = self.buffer.pop(0)
-            self.remove_from_grid(experience_to_delete)
+            removed_experience = self.buffer.pop(0)
+            # calculate position
+            position_old = self.get_position(removed_experience)
+            # remove from grid - will always be the first to be added
+            self.grid_experiences[position_old].pop(0)
+            # remove from count
+            self.grid_occupancy[position_old] -= 1
 
     def get_position(self, experience):
         """ Calculate position in grid for a given experience """
@@ -404,50 +396,6 @@ class ExperienceBufferGridImage(ExperienceBufferGrid):
             position += bin_placement * exponential
 
         return position
-
-
-
-class PrioExperienceBufferGrid(PrioReplayBuffer, ExperienceBufferGrid):
-
-
-    def __init__(self, capacity, prob_alpha=0.6, n_bins=10):
-
-        PrioReplayBuffer.__init__(self, capacity, prob_alpha)
-
-        # adds only extra variable for experience grid
-        self.n_bins = n_bins
-
-    def append(self, experience):
-
-        # set experience to maximum priority when it enter the buffer
-        max_prio = self.priorities.max() if self.buffer else 1.0
-
-        if len(self.buffer) < self.capacity:
-            # if buffer not full, append new transition
-            self.buffer.append(experience)
-        else:
-            # otherwise overwrite last position
-            experience_to_delete = self.buffer[self.pos]
-            # rewrites the new
-            self.buffer[self.pos] = experience     
-            # calculate position
-            self.remove_from_grid(experience_to_delete)
-
-        self.add_to_grid(experience)
-
-        # set priorities
-        self.priorities[self.pos] = max_prio
-        # adjust position - when ends, goes back to zero
-        self.pos = (self.pos + 1) % self.capacity
-
-
-class PrioExperienceBufferGridImage(PrioExperienceBufferGrid, ExperienceBufferGridImage):
-
-    """ Same as PrioExperienceBufferGrid, but with added images """ 
-
-    pass
-
-
 
 
 

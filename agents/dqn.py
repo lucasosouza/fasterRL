@@ -1,6 +1,6 @@
 from .base_agent import ValueBasedAgent
 from fasterRL.common.network import *
-from fasterRL.common.buffer import Experience, ExperienceBuffer, PrioReplayBuffer, ExperienceBufferGrid, ExperienceBufferGridImage
+from fasterRL.common.buffer import *
 
 import torch
 import torch.optim as optim
@@ -85,14 +85,22 @@ class DQN(ValueBasedAgent):
         self.optimizer = optim.Adam(self.net.parameters(), lr=self.learning_rate)
 
         # initialize experience buffer
-        if self.prioritized_replay:
+        if self.prioritized_replay and not self.focused_sharing:
             self.buffer = PrioReplayBuffer(self.experience_buffer_size, self.prio_replay_alpha)
         elif self.focused_sharing:
             # if it has variables in more than one dimension (image), special buffer
             if len(env.observation_space.shape) > 1:
-                self.buffer = ExperienceBufferGridImage(self.experience_buffer_size)
+                # image
+                if self.prioritized_replay:
+                    self.buffer = PrioExperienceBufferGridImage(self.experience_buffer_size, self.prio_replay_alpha)
+                else:
+                    self.buffer = ExperienceBufferGridImage(self.experience_buffer_size)
             else:
-                self.buffer = ExperienceBufferGrid(self.experience_buffer_size)
+                # no image
+                if self.prioritized_replay:
+                    self.buffer = PrioExperienceBufferGrid(self.experience_buffer_size, self.prio_replay_alpha)
+                else:
+                    self.buffer = ExperienceBufferGrid(self.experience_buffer_size)
             # set the grid
             self.buffer.set_grid(env.observation_space, env.action_space)
         else:
