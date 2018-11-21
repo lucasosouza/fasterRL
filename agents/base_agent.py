@@ -11,10 +11,6 @@ class BaseAgent():
         if "PLATFORM" in params:
             self.platform = params["PLATFORM"]
 
-        self.render = False
-        if "RENDER" in params:
-            self.render = params["RENDER"]
-
         self.random_seed = 42
         if "RANDOM_SEED" in params:
             self.random_seed = params["RANDOM_SEED"]
@@ -57,7 +53,6 @@ class BaseAgent():
         # take a step
         action = self.select_action()
         next_state, reward, done, _ = self.env.step(action)
-        self.render_environment()
 
         # learn
         self.learn(action, next_state, reward, done)
@@ -68,18 +63,13 @@ class BaseAgent():
         # bookkeeping
         self.step_reward = reward
 
+        # update any moving params (such as decaying epsilon or alpha)
         self.update_params()
 
         return done
 
     def update_params(self):
         pass
-
-    def render_environment(self):
-
-        if self.platform == 'malmo':
-            if self.render:
-                self.env.render('human') # specific for minecraft
 
     def learn(self, action, next_state, reward, done):
         pass # no learning in random action agents

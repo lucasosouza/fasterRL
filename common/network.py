@@ -4,6 +4,7 @@ Creates neural networks
 
 import torch
 import torch.nn as nn
+import numpy as np
 
 class Network(nn.Module):
 
@@ -62,6 +63,11 @@ class ConvNetwork(Network):
         return self.fc(conv_out)     
 
 class DeepQNetwork(ConvNetwork):
+
+    # input for Pong is 210 x 160
+    # these were planned for an 84x84 image
+    # maybe what I can do is use the wrapper to rebalance it 
+
     
     def __init__(self, input_shape, n_actions, device="cpu", random_seed=42):
         super(DeepQNetwork, self).__init__(device, random_seed)

@@ -10,12 +10,19 @@ def make_env(env_name):
     env = gym.make(env_name)    
     return env
 
-
 def wrap_env_malmo(env):
+    """
+        Most configuration is done by the modified gym minecraft library 
+        This includes: 
+            - stacking 4 frames
+            - scaling down
+            - adapting to PyTorch
 
-	env = ScaledFloatFrame(env)
-	return env
+        Need to move this code from the modified library to here in order to have a reproducible code
+    """
 
+    env = ScaledFloatFrame(env)
+    return env
 
 def wrap_env_marlo(env):
 
@@ -24,6 +31,12 @@ def wrap_env_marlo(env):
     env = ImageToPyTorch(env)
     return env
 
+def wrap_env_atari(env):
+
+    env = DownscaleFrame(env)
+    env = ScaledFloatFrame(env)
+    env = ImageToPyTorch(env)
+    return env
 
 class DownscaleFrame(gym.ObservationWrapper):
     """ Downscale image to expected size of 84x84 """ 
@@ -38,8 +51,8 @@ class ImageToPyTorch(gym.ObservationWrapper):
 
     """ Make transformation required for PyTorch: move channels to last dimension 
 
-		No longer required since making modifiction directly to minecraft env library 
-		to do frame stacking
+        No longer required since making modifiction directly to minecraft env library 
+        to do frame stacking
     """
         
     def __init__(self, env):
@@ -53,6 +66,7 @@ class ImageToPyTorch(gym.ObservationWrapper):
         # fixar o tamanho por hora
         self.observation_space = gym.spaces.Box(low=0.0, high=1.0, 
            shape=(old_shape[-1], 84, 84), dtype=np.float32)
+
         
     def observation(self, obs):
         """ Receives observation and returns observations with shifted axis """
@@ -71,5 +85,5 @@ class ScaledFloatFrame(gym.ObservationWrapper):
     
     def observation(self, obs):
 
-    	# transforma em float de 0 a 1
+        # transforma em float de 0 a 1
         return np.array(obs).astype(np.float32) / 255.

@@ -1,6 +1,6 @@
 from .base_agent import ValueBasedAgent
 from fasterRL.common.network import *
-from fasterRL.common.buffer import Experience, ExperienceBuffer, PrioReplayBuffer, ExperienceBufferGrid
+from fasterRL.common.buffer import Experience, ExperienceBuffer, PrioReplayBuffer, ExperienceBufferGrid, ExperienceBufferGridImage
 
 import torch
 import torch.optim as optim
@@ -12,9 +12,9 @@ class DQN(ValueBasedAgent):
     def __init__(self, params):
         super(DQN, self).__init__(params)
 
-        experience_buffer_size = 1000
+        self.experience_buffer_size = 1000
         if "EXPERIENCE_BUFFER_SIZE" in params:
-            experience_buffer_size = params["EXPERIENCE_BUFFER_SIZE"]
+            self.experience_buffer_size = params["EXPERIENCE_BUFFER_SIZE"]
 
         self.replay_batch_size = 32
         if "REPLAY_BATCH_SIZE" in params:
@@ -73,14 +73,6 @@ class DQN(ValueBasedAgent):
         self.focused_sharing = False
         if "FOCUSED_SHARING" in self.params:
             self.focused_sharing = self.params["FOCUSED_SHARING"]
-
-        # initialize experience buffer
-        if self.prioritized_replay:
-            self.buffer = PrioReplayBuffer(experience_buffer_size, self.prio_replay_alpha)
-        elif self.focused_sharing:
-            self.buffer = ExperienceBufferGrid(experience_buffer_size)
-        else:
-            self.buffer = ExperienceBuffer(experience_buffer_size)
  
     def set_environment(self, env):
         super(DQN, self).set_environment(env)
@@ -92,9 +84,20 @@ class DQN(ValueBasedAgent):
             device=self.device, random_seed=self.random_seed)
         self.optimizer = optim.Adam(self.net.parameters(), lr=self.learning_rate)
 
-        # update buffer if using focused sharing
-        if self.focused_sharing:
+        # initialize experience buffer
+        if self.prioritized_replay:
+            self.buffer = PrioReplayBuffer(self.experience_buffer_size, self.prio_replay_alpha)
+        elif self.focused_sharing:
+            # if it has variables in more than one dimension (image), special buffer
+            if len(env.observation_space.shape) > 1:
+                self.buffer = ExperienceBufferGridImage(self.experience_buffer_size)
+            else:
+                self.buffer = ExperienceBufferGrid(self.experience_buffer_size)
+            # set the grid
             self.buffer.set_grid(env.observation_space, env.action_space)
+        else:
+            self.buffer = ExperienceBuffer(self.experience_buffer_size)
+
 
     def select_best_action(self, state):
 

@@ -233,6 +233,15 @@ class A2CLogger(WinLogger):
                 self.writer.add_scalar(var_name, var_value, self.episode_count)
 
 
+
+class StepLogger(WinLogger):
+
+    def log_step(self):
+        super(StepLogger, self).log_step()
+
+        if self.log_level > 1:
+            print("In step {}".format(self.steps_count))
+
 """ 
 to log in future implementations
 

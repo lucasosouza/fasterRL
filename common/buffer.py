@@ -354,6 +354,57 @@ class ExperienceBufferGrid(ExperienceBuffer):
             return []
 
 
+class ExperienceBufferGridImage(ExperienceBufferGrid):
+    """ 
+        Adaptations to ExperienceBufferGrid to handle images
+        Changes how grid is set and how to get position of the experience
+    """
+    
+    def set_grid(self, observation_space, action_space):
+        """ Customized to handle 4 actions only. Need to modify to handle n actions """
+
+        n_states = observation_space.shape[0]
+        n_actions = action_space.n
+
+        # define bins for digitize (discretization operation)
+        self.bins = [0.25, 0.5, 0.75]
+        self.reduce_block = (4,28,28) # reduces to 3x3x1
+        self.reduced_state_size = 9
+        self.reduced_state_action_size = self.reduced_state_size + 1
+        self.exponentials = []
+        for exponential in list(range(self.reduced_state_action_size))[::-1]:
+            self.exponentials.append(self.n_bins**exponential) 
+        self.grid_size = self.n_bins ** self.reduced_state_action_size
+
+        # initialize new structures
+        self.grid_occupancy = np.zeros(self.grid_size)
+        self.grid_experiences = np.zeros(self.grid_size, dtype=list)
+        for ii in range(len(self.grid_experiences)):
+            self.grid_experiences[ii] = []
+            
+    def get_position(self, experience):
+
+        state = experience.state
+        action = experience.action
+        
+        reduced_state = block_reduce(state, self.reduce_block, func=np.mean).ravel()
+        bin_placements = list(np.digitize(reduced_state , self.bins))
+
+        # considering action as just part of the state, since num actions = num bins it works
+        position = 0
+        bin_placements.append(action)
+        for bin_placement, exponential in zip(bin_placements, self.exponentials):
+            position += bin_placement * exponential
+
+        return position
+
+
+
+# the question is - how do I know when to handle images?
+# if box is greater than 1 
+
+
+
 """
 too generic
     # def configure(**kwargs):

@@ -39,7 +39,6 @@ class BaseExperiment:
         # save path for local method
         self.local_log_path = os.path.join(log_root, "results", experiment_id + '.json')
 
-        # unpack params
         self.num_trials = 1
         if "NUM_TRIALS" in self.params:
             self.num_trials = self.params["NUM_TRIALS"]
@@ -47,6 +46,10 @@ class BaseExperiment:
         self.num_episodes = 1
         if "NUM_EPISODES" in self.params:
             self.num_episodes = self.params["NUM_EPISODES"]
+
+        self.steps_limit = None
+        if "STEPS_LIMIT" in self.params:
+            self.steps_limit = self.params["STEPS_LIMIT"]
 
         # also uses a log level, for things above the agent level
         self.log_level = 2
@@ -88,14 +91,22 @@ class BaseExperiment:
             self.run_episode(agent, logger)
         logger.end_training()
 
-    def run_episode(self, agent, logger):
+    def run_episode(self, agent):
 
         logger.start_episode()
         agent.reset()
         episode_complete = False
-        while not episode_complete:
-            episode_complete = agent.play_step()
-            logger.log_step()
+
+        # user can set a step limit - can add this as a params
+        if self.steps_limit:
+            while not episode_complete or logger.steps_count >= self.steps_limit:
+                episode_complete = agent.play_step()
+                logger.log_step()
+        else:
+            while not episode_complete:
+                episode_complete = agent.play_step()
+                logger.log_step()
+
         logger.log_episode()
 
 class UntilWinExperiment(BaseExperiment):
@@ -190,6 +201,7 @@ class MultiAgentExperiment(UntilWinExperiment):
                 all_trial_episodes[idx_a].append(num_episodes)
 
         return [sum(l)/len(l) for l in all_trial_episodes]  
+
 
     def run_trial(self, trial):
         """ Modified to run until problem is solved or number of max episodes is reached
