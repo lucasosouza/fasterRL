@@ -1,6 +1,7 @@
 import numpy as np
 from collections import namedtuple, deque
 from functools import reduce
+from skimage.measure import block_reduce
 
 # need to better organize this log of experience, transition, etc
 
@@ -48,7 +49,6 @@ class TransitionBuffer:
         for _ in range(len(self.buffer)):
             yield self.all()
             self.buffer.popleft()
-
 
 class MCTransitionBuffer:
     """ A transition buffer used for MonteCarlo or ND-steps """
@@ -362,6 +362,9 @@ class ExperienceBufferGridImage(ExperienceBufferGrid):
     
     def set_grid(self, observation_space, action_space):
         """ Customized to handle 4 actions only. Need to modify to handle n actions """
+
+        # rewrite n bins
+        self.n_bins = 4
 
         n_states = observation_space.shape[0]
         n_actions = action_space.n

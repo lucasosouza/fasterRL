@@ -6,7 +6,7 @@ import os
 from datetime import datetime
 from time import sleep
 import json
-from collections import namedtuple
+from collections import namedtuple, defaultdict
 
 
 AgentExperiment = namedtuple('AgentExperiment', field_names=['env', 'agent', 'logger'])
@@ -275,68 +275,46 @@ class MultiAgentExperiment(UntilWinExperiment):
             This mask is used to let the teacher nows which experiences matter the most
         """
 
-        # init list to store all transfer batches
-        transfer_batches = []
-
-        # select experiences to share
-        for agent in agents:
-            transfer_batch = agent.buffer.select_batch(self.share_batch_size)
-            transfer_batches.append(transfer_batch)
-
-        # receive experiences from all other agents
-        for idx_a, agent in enumerate(agents):
-            batch_indices = list(range(len(agents)))
-            batch_indices.pop(idx_a) # agent should not receive his own experiences
-            for idx_b in batch_indices:
-                agent.buffer.receive(transfer_batches[idx_b])
-
-        # logging should be done by logger preferrably
-        if self.log_level > 1:
-            print("Number of experiences transferred: {}".format([len(tb) for tb in transfer_batches]))
-
-
-        # agent makes a request to all other agents
-        # there is not a per se sharing available
-        # so first I need to gather the masks
-
-        transfer_requests = []
-        tb_sizes = []
-
         # each agent puts forward a request wit experiences wanted
+        transfer_requests = [] 
         for agent in agents:
             transfer_request = agent.buffer.identify_unexplored(threshold=self.focused_sharing_threshold)
             transfer_requests.append(transfer_request)
 
-        # for each request
+        # for each request, gather transfers
+        transfer_batches = defaultdict(list)
         for idx_r, request in enumerate(transfer_requests):
-            requesting_agent = agents[idx_r]
-            num_experiences_received = 0
             # all agents respond to request
             for idx_a, agent in enumerate(agents):
                 # unless its the agents own request
                 if idx_r != idx_a:
                     transfer_batch = agent.buffer.select_batch_with_mask(self.share_batch_size, request)
-                    requesting_agent.buffer.receive(transfer_batch)
-                    num_experiences_received += len(transfer_batch)
+                    transfer_batches[idx_r].append(transfer_batch)
+
+        # each agent receives the transfers sent to it
+        tb_sizes = []
+        for idx_a, batches in transfer_batches.items():
+            agent = agents[idx_a]
+            num_experiences_received = 0
+            for batch in batches:              
+                agent.buffer.receive(batch)
+                num_experiences_received += len(batch)
             tb_sizes.append(num_experiences_received)
 
-        # logging should be done by logger preferrably
+        # report
         if self.log_level > 1:
             print("Number of experiences transferred: {}".format(tb_sizes))
 
-        # programming is done here 
-        # move to buffer
-        # I need to implement two functions 
-        # a request share
-        # and a select batch with mask
-
-        # that requires a new type of exp buffer 
-        # when I init agent DQN, I should now that if it asks for focused sharing
-        # it will need a different type of buffer
-        # but the API will remain the same
-
 
 """
+
+# can stop from receiving the experience in the first round
+# but not in the second
+# how do I stop an agent from receiving identical experiences?
+# I can maybe come up with a hash kind of algorithm to identify an experience
+# and how do I check all hashes before I add an experience?
+# this is something to look at later
+
 
 to consider it later:
 

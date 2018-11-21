@@ -35,7 +35,9 @@ params["SHARING"] = True
 params["SHARE_BATCH_SIZE"] = 128
 
 # test focused sharing as well
-
+params["FOCUSED_SHARING"] = True
+params["SHARE_BATCH_SIZE"] = 128
+params["FOCUSED_SHARING_THRESHOLD"] = 3
 
 sharings = [True]
 for sharing in sharings:
@@ -50,4 +52,7 @@ for sharing in sharings:
 
 # multiagent ok
 # multiagent with experience sharing ok
-# multiagent with focused experienec sharing
+# multiagent focused experience sharing ok - still issues I have to investigate relating to agent A sharing the same experience with agent B that it received in last round from agent B (so for B would only be duplicated)
+# however don't seem to be learning
+
+
