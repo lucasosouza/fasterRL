@@ -6,23 +6,21 @@ import torch
 import torch.nn as nn
 import numpy as np
 
+torch.manual_seed(42)
+np.random.seed(42)
+
+
 class Network(nn.Module):
 
     def __init__(self, device="cpu", random_seed=42):
         torch.manual_seed(random_seed)
         super(Network, self).__init__()
 
-        self.device = device
+        # self.device = device
 
     def forward(self, x):
         """ Main forward function """      
         
-        # manually changed from torch.FloatTensor to torch.cuda.FloatTensor to run in GPU
-        if self.device == "cuda":
-            x = x.type(torch.cuda.FloatTensor)
-        elif self.device == "cpu":
-            x = x.type(torch.FloatTensor)    
-
         return self.network(x)
 
 class ConvNetwork(Network):
@@ -46,13 +44,7 @@ class ConvNetwork(Network):
 
     def forward(self, x):
         """ Main forward function """      
-        
-        # manually changed from torch.FloatTensor to torch.cuda.FloatTensor to run in GPU
-        if self.device == "cuda":
-            x = x.type(torch.cuda.FloatTensor)
-        elif self.device == "cpu":
-            x = x.type(torch.FloatTensor)
-        
+
         # apply the convolution layer to input and obtain a 4d tensor on output
         # and result is flattened, by the view function
         # view doesn't create a new memory obect or move data in memort, 
@@ -67,7 +59,6 @@ class DeepQNetwork(ConvNetwork):
     # input for Pong is 210 x 160
     # these were planned for an 84x84 image
     # maybe what I can do is use the wrapper to rebalance it 
-
     
     def __init__(self, input_shape, n_actions, device="cpu", random_seed=42):
         super(DeepQNetwork, self).__init__(device, random_seed)
@@ -184,12 +175,6 @@ class SimpleContinuousPolicyNetwork(ContinuousPolicyNetwork):
         
     def forward(self, x):
 
-        # manually changed from torch.FloatTensor to torch.cuda.FloatTensor to run in GPU
-        if self.device == "cuda":
-            x = x.type(torch.cuda.FloatTensor)
-        elif self.device == "cpu":
-            x = x.type(torch.FloatTensor)    
-
         x = self.base(x)
 
         return self.adjust_output_range(self.mu(x)), self.var(x)
@@ -216,12 +201,6 @@ class SimpleA2CNetwork(Network):
         )
 
     def forward(self, x):
-
-        # manually changed from torch.FloatTensor to torch.cuda.FloatTensor to run in GPU
-        if self.device == "cuda":
-            x = x.type(torch.cuda.FloatTensor)
-        elif self.device == "cpu":
-            x = x.type(torch.FloatTensor)    
 
         x = self.base(x)
 

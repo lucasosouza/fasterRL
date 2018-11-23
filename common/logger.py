@@ -28,6 +28,10 @@ class BaseLogger():
         if "REPORTING_INTERVAL" in params:
             self.reporting_interval = params["REPORTING_INTERVAL"]
 
+        self.reward_scaling_factor = None
+        if "REWARD_SCALING_FACTOR" in params:
+            self.reward_scaling_factor = params["REWARD_SCALING_FACTOR"]
+
         # only need the agent's variables, no need to keep ref to remaining
         self.agent = agent
 
@@ -42,69 +46,92 @@ class BaseLogger():
         # controls number of episodes and frames. control time
 
         self.episode_count = 0
-        self.frame_count = 0
-        self.frame_start = time()
+        self.total_steps_count = 0
 
         # bookkeeping
         self.episode_reward = 0
         self.rewards = []
         self.steps = []
 
+        # time
+        self.trial_start = time()
 
     def end_training(self):
 
+        self.log_trial()
         self.writer.close()
 
     def start_episode(self):
         # control number of steps. control time
         self.steps_count = 0
-        self.episode_start = time()
         self.episode_reward = 0
+        self.episode_start = time()
+        self.step_start = time()
 
     def log_step(self):
 
-        # verify frame speed - should be similar to episode speed
+        # convert reward back to original scale
+        self.step_reward = self.agent.step_reward 
+        if self.reward_scaling_factor:
+            self.step_reward /= self.reward_scaling_factor
 
-        frame_speed = 1000 / (time() - self.frame_start)
-        self.frame_count += 1
+        self.total_steps_count += 1
         self.steps_count += 1
-        self.episode_reward += self.agent.step_reward
+        self.episode_reward += self.step_reward
 
         if self.log_level > 3 :
 
-            self.writer.add_scalar("speed/frame", frame_speed, self.frame_count)
-            self.writer.add_scalar("reward/step", self.agent.step_reward, self.frame_count)
+            # verify frame speed - should be similar to episode speed
+            step_speed = time() - self.step_start
+            steps_per_second = 1 / step_speed
+
+            self.writer.add_scalar("speed/steps_ps", steps_per_second, self.total_steps_count)
+            self.writer.add_scalar("reward/step", self.step_reward, self.total_steps_count)
 
             # temporary workaround. may add several variables like this to logger instead of subclassing
             if hasattr(self.agent, "epsilon"):
-                self.writer.add_scalar("epsilon", self.agent.epsilon, self.frame_count)
+                self.writer.add_scalar("epsilon", self.agent.epsilon, self.total_steps_count)
 
-            self.frame_start = time()
+            self.step_start = time()
 
     def log_episode(self):
 
         episode_speed = time() - self.episode_start
         self.episode_count += 1
         self.rewards.append(self.episode_reward)
-        self.steps.append(self.steps_count)
+        self.steps.append(self.steps_count)        
 
         if self.log_level > 1 :
 
+            average_step_speed = episode_speed / self.steps_count
+            steps_per_second = 1 / average_step_speed
+
             if self.episode_count % self.reporting_interval == 0:
-                self.cprint("Episode {} Mean Reward: {:.3f} Mean Steps: {:.3f} Speed: {:.3f} sec/ep Frame: {}".format(
+                self.cprint("Episode {} | Avg Reward: {:.2f} | Running Mean: {:.2f} | Avg Steps: {:.2f} | Ep.Speed: {:.2f} sec/ep | Steps p/s {:.2f} | Total steps: {}".format(
                     self.episode_count, 
                     np.mean(self.rewards[-self.reporting_interval:]), 
+                    np.mean(self.rewards[-self.number_episodes_mean:]), 
                     np.mean(self.steps[-self.reporting_interval:]), 
                     episode_speed,
-                    self.frame_count))
+                    steps_per_second,
+                    self.total_steps_count))
 
         if self.log_level > 2 :
 
             self.writer.add_scalar("reward/episode", self.episode_reward, self.episode_count)
-            self.writer.add_scalar("steps", self.steps_count, self.episode_count)
+            self.writer.add_scalar("steps", self.steps_count,
+             self.episode_count)
             self.writer.add_scalar("speed/episode", episode_speed, self.episode_count)
 
             self.episode_start = time()
+
+    def log_trial(self):
+
+        if self.log_level > 1:
+
+            trial_speed = time() - self.trial_start
+            print("Trial took {:.2f} seconds".format(trial_speed))
+
 
 class WinLogger(BaseLogger):
 
@@ -145,8 +172,8 @@ class DQNLogger(WinLogger):
 
             # maybe predict for when using GPU calculate differently
             q_vals = self.agent.calculate_q_vals().detach().numpy()[0]
-            self.writer.add_scalar("q_value/min", min(q_vals), self.frame_count)
-            self.writer.add_scalar("q_value/max", max(q_vals), self.frame_count)
+            self.writer.add_scalar("q_value/min", min(q_vals), self.total_steps_count)
+            self.writer.add_scalar("q_value/max", max(q_vals), self.total_steps_count)
 
 class CrossEntropyLogger(WinLogger):
 
@@ -240,7 +267,8 @@ class StepLogger(WinLogger):
         super(StepLogger, self).log_step()
 
         if self.log_level > 1:
-            print("In step {}".format(self.steps_count))
+            print("In step {}".format(self.steps_count)
+                )
 
 """ 
 to log in future implementations
@@ -260,9 +288,9 @@ to initialize later
 
 neural network
 step
-self.writer.add_scalar("q_value/min", min(self.latest_qvals), self.frame_count)
-self.writer.add_scalar("q_value/max", max(self.latest_qvals), self.frame_count)
-self.writer.add_scalar("loss", loss, self.frame_count)
+self.writer.add_scalar("q_value/min", min(self.latest_qvals), self.total_steps_count)
+self.writer.add_scalar("q_value/max", max(self.latest_qvals), self.total_steps_count)
+self.writer.add_scalar("loss", loss, self.total_steps_count)
 
 episode
 # monitor parameter sharing

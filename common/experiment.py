@@ -33,7 +33,6 @@ class BaseExperiment:
         # dumps json with experiment hyperparameters
         with open(os.path.join(log_root, "logs", experiment_id + ".json"), "w") as f:
             json.dump(params, f)
-        print("Initializing experiment: ", experiment_id)
 
         self.log_dir = os.path.join(log_root, "runs", experiment_id)
         # save path for local method
@@ -55,14 +54,22 @@ class BaseExperiment:
         self.log_level = 2
         if "LOG_LEVEL" in params:
             self.log_level = params["LOG_LEVEL"]            
+        
         self.reporting_interval = 1
         if "REPORTING_INTERVAL" in params:
             self.reporting_interval = params["REPORTING_INTERVAL"]
+
+        self.prefill_buffer = False
+        if "PREFILL_BUFFER" in params:
+            self.prefill_buffer = params["PREFILL_BUFFER"]
 
         # define methods for agent, env and logger
         self.agent_method = eval(params["METHOD"])
         self.env_method = BaseEnv
         self.logger_method = BaseLogger
+
+        if self.log_level > 1:
+            print("Initializing experiment: ", experiment_id)
 
     def run(self):
 
@@ -78,6 +85,9 @@ class BaseExperiment:
         agent.set_environment(env)
         agent.set_alias(alias)
         logger = self.logger_method(self.params, self.log_dir, agent, trial, color) # ok
+
+        if self.prefill_buffer:
+            agent.fill_buffer()
 
         return AgentExperiment(env, agent, logger)
 
@@ -99,8 +109,12 @@ class BaseExperiment:
 
         # user can set a step limit - can add this as a params
         if self.steps_limit:
-            while not episode_complete or logger.steps_count >= self.steps_limit:
+            while not episode_complete and logger.steps_count < self.steps_limit:
+                print(logger.steps_count, self.steps_limit)
                 episode_complete = agent.play_step()
+                # somehow it is logging 1 to 2 extra steps in Malmo
+                # see if this is ocurring in other environemnts
+                # what can be happening is agent issues the step, but the environment doesn't accept it
                 logger.log_step()
         else:
             while not episode_complete:

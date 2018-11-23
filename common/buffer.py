@@ -185,7 +185,7 @@ class EpisodeBuffer:
         return np.array(states), np.array(actions)
 
 
-class PrioReplayBuffer:
+class PrioReplayBuffer(ExperienceBuffer):
     """ implementation from From Deep Reinforcement Learning Handson book """
 
     def __init__(self, capacity, prob_alpha=0.6):
@@ -294,7 +294,7 @@ class ExperienceBufferGrid(ExperienceBuffer):
         mask = self.grid_occupancy <= threshold
         return mask
 
-    def remove_from_grid(self, experience):
+    def remove_from_grid(self, removed_experience):
 
         position_old = self.get_position(removed_experience)
         # remove from grid - will always be the first to be added
@@ -375,7 +375,8 @@ class ExperienceBufferGridImage(ExperienceBufferGrid):
 
         # define bins for digitize (discretization operation)
         self.bins = [0.25, 0.5, 0.75]
-        self.reduce_block = (4,28,28) # reduces to 3x3x1
+        # self.reduce_block = (4,28,28) # reduces to 3x3x1
+        self.reduce_block = (1,28,28) # reduces to 3x3x1 # modified to single channel
         self.reduced_state_size = 9
         self.reduced_state_action_size = self.reduced_state_size + 1
         self.exponentials = []

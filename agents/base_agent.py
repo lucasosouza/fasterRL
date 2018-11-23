@@ -15,10 +15,6 @@ class BaseAgent():
         if "RANDOM_SEED" in params:
             self.random_seed = params["RANDOM_SEED"]
 
-        self.device = "cpu"
-        if "DEVICE" in params:
-            self.device = params["device"]
-
         # common variables shared accross most agents
         self.gamma = 0.99
         if "GAMMA" in params:
@@ -36,7 +32,6 @@ class BaseAgent():
 
     def set_environment(self, env):
         self.env = env
-        self.reset()
 
     def set_alias(self, alias):
         self.alias = alias

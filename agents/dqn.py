@@ -12,6 +12,11 @@ class DQN(ValueBasedAgent):
     def __init__(self, params):
         super(DQN, self).__init__(params)
 
+        device = "cpu"
+        if "DEVICE" in params:
+            device = params["DEVICE"]
+        self.device = torch.device(device)        
+
         self.experience_buffer_size = 1000
         if "EXPERIENCE_BUFFER_SIZE" in params:
             self.experience_buffer_size = params["EXPERIENCE_BUFFER_SIZE"]
@@ -79,9 +84,9 @@ class DQN(ValueBasedAgent):
 
         # initialize networks
         self.net = self.network_type(env.observation_space.shape, env.action_space.n, 
-            device=self.device, random_seed=self.random_seed)
+            random_seed=self.random_seed).to(self.device)
         self.tgt_net = self.network_type(env.observation_space.shape, env.action_space.n, 
-            device=self.device, random_seed=self.random_seed)
+            random_seed=self.random_seed).to(self.device)
         self.optimizer = optim.Adam(self.net.parameters(), lr=self.learning_rate)
 
         # initialize experience buffer
@@ -107,6 +112,26 @@ class DQN(ValueBasedAgent):
             self.buffer = ExperienceBuffer(self.experience_buffer_size)
 
 
+    def fill_buffer(self):
+        """ Fill buffer prior to experience """
+
+        # prepare to start
+        self.reset()
+
+        # run multiple round until buffer is full. access env directly
+        while len(self.buffer) < self.replay_batch_size:
+                    
+            action = self.env.action_space.sample()
+            next_state, reward, done, _ = self.env.step(action)
+            self.buffer.append(Experience(self.state, action, reward, done, next_state))
+
+            # change state to new state
+            self.state = next_state
+
+            # if done, needs to reset
+            if done:
+                self.reset()
+     
     def select_best_action(self, state):
 
         q_vals_v = self.calculate_q_vals(state)
