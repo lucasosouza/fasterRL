@@ -17,7 +17,7 @@ def wrap_env_malmo(env):
     env = BlackAndWhite(env)
     env = Downscale(env, 84, 84)
     env = ImageToPyTorch(env)
-#     env = BufferWrapper(env, 4)
+    env = BufferWrapper(env, 4)
     env = ScaledFloatFrame(env)
 
     return env

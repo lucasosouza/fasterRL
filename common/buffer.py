@@ -286,6 +286,12 @@ class ExperienceBufferGrid(ExperienceBuffer):
         self.state_bins = []
         for i in range(n_states):
             low, high = observation_space.low[i], observation_space.high[i]
+
+            # hacky fix - cap low an high if infinite
+            # limit to +1000 and -1000
+            low = max(low, -1e3)
+            high = min(high, 1e3)
+
             bins = np.histogram([low, high], bins=self.n_bins)[1]
             self.state_bins.append(bins[1:])
 

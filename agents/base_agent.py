@@ -49,6 +49,9 @@ class BaseAgent():
         action = self.select_action()
         next_state, reward, done, _ = self.env.step(action)
 
+        # if done:
+        #     print("done, reward: {:.1f}".format(reward))
+
         # learn
         self.learn(action, next_state, reward, done)
         

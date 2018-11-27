@@ -150,7 +150,7 @@ class DQN(ValueBasedAgent):
         # moves state into an array with 1 sample to pass through neural net
         state_a = np.array([state], copy=False)
         # creates tensor
-        state_v = torch.tensor(state_a).to(self.device)
+        state_v = torch.FloatTensor(state_a).to(self.device)
         # get q values with feed forward
         q_vals_v = self.net(state_v)
 
@@ -247,8 +247,8 @@ class DQN(ValueBasedAgent):
         states, actions, rewards, dones, next_states = batch
         
         # creates tensors. and push them to device, if GPU is available, then uses GPU
-        states_v = torch.tensor(states).to(self.device)
-        next_states_v = torch.tensor(next_states).to(self.device)
+        states_v = torch.FloatTensor(states).to(self.device)
+        next_states_v = torch.FloatTensor(next_states).to(self.device)
         rewards_v = torch.tensor(rewards).to(self.device)
         actions_v = torch.tensor(actions).to(self.device)
         done_mask = torch.ByteTensor(dones).to(self.device)

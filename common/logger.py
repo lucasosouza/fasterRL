@@ -171,7 +171,7 @@ class DQNLogger(WinLogger):
         if self.log_level > 4 :
 
             # maybe predict for when using GPU calculate differently
-            q_vals = self.agent.calculate_q_vals().detach().numpy()[0]
+            q_vals = self.agent.calculate_q_vals().data.cpu().numpy()[0]
             self.writer.add_scalar("q_value/min", min(q_vals), self.total_steps_count)
             self.writer.add_scalar("q_value/max", max(q_vals), self.total_steps_count)
 
