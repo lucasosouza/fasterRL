@@ -38,7 +38,32 @@ params = {
     "SOFT_UPDATE_TAU": 5e-3 
 }
 
+new_params = {
+    "REPORTING_INTERVAL": 10,
+    "LOG_LEVEL": 2,
+    "NUMBER_EPISODES_MEAN": 10,    
+    "MEAN_REWARD_BOUND": 195,
+    "EPSILON_DECAY_LAST_FRAME": 10000,
+    "EPSILON_START": 1.0,
+    "EPSILON_FINAL": 0.02,
+}
+params.update(new_params)
+
 exp = UntilWinExperiment(params)
 result = exp.run()
 print("Method {} took an average of {:.2f} episodes".format(params["METHOD"], result))
 
+# if is learning for mountain car, then I can check discretization
+# it seems to learn better with a lot of exploration
+# as soon as it starts exploring, its rewards starts to diminish
+# keep constant exploration, see if it helps
+# it takes at least 25x as longer as the discretized version
+
+# solved in 405 episodes
+# took 45 seconds
+
+# solved in 150 episodes
+# took 9.28 seconds
+
+# solved in 330 episodes
+# took 42.41 seconds

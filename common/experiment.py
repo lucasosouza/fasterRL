@@ -152,6 +152,8 @@ class UntilWinExperiment(BaseExperiment):
 
         return logger.episode_count
 
+        # can print results here, besides from returning
+
     def run(self):
         """ Modified to return the average number of episodes to finish 
             If not finished, return max (an oversimplification)
@@ -162,8 +164,11 @@ class UntilWinExperiment(BaseExperiment):
             num_episodes = self.run_trial(trial)
             all_trial_episodes.append(num_episodes)
 
-        return sum(all_trial_episodes)/len(all_trial_episodes)
+        average_number_of_episodes = sum(all_trial_episodes)/len(all_trial_episodes)
 
+        if self.log_level > 1:
+            print("Average number of episodes for trial: {:.2f}".format(average_number_of_episodes))                       
+        return average_number_of_episodes
 
 
 class MultiAgentExperiment(UntilWinExperiment):

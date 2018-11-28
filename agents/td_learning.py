@@ -12,6 +12,11 @@ class TDLearning(ValueBasedAgent):
         if "TD_TYPE" in params:
             self.td_type = params["TD_TYPE"]
 
+        # keep action discretization for now, implement later
+        self.discretize_action = False
+        if "DISCRETIZE_ACTION" in params:
+            self.discretize_action = params["DISCRETIZE_ACTION"]
+
         self.importance_sampling = False
         if "IMPORTANCE_SAMPLING" in params:
             self.importance_sampling = params["IMPORTANCE_SAMPLING"]
@@ -22,14 +27,27 @@ class TDLearning(ValueBasedAgent):
     def set_environment(self, env):
         super(TDLearning, self).set_environment(env)
 
-        self.num_actions = self.env.action_space.n
+        # get state size
+        if len(env.observation_space.shape) > 0:
+            obs_size = env.observation_space.shape
+        else:
+            obs_size = (env.observation_space.n,)
 
-        # include qtable initialization
-        self.qtable = {}
-        for state in range(self.env.observation_space.n):
-            self.qtable[state] = {}
-            for action in range(self.env.action_space.n):
-                self.qtable[state][action] = 0    
+        # get action size
+        if len(env.action_space.shape) > 0:
+            action_size = env.action_space.shape
+        else:
+            action_size = (env.action_space.n,)
+            # still required for random action selection
+            self.num_actions = env.action_space.n
+
+        # initialize q-table
+        self.qtable = np.zeros(shape=obs_size+action_size)
+
+        # only need to change way to access it 
+        # need to implement a get qvalue function? 
+        # probably 
+        # then also need to review the other implementations
 
     def select_next_action(self, next_state):
 

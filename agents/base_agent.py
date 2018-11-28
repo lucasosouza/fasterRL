@@ -93,6 +93,7 @@ class ValueBasedAgent(BaseAgent):
     def set_environment(self, env):
         super(ValueBasedAgent, self).set_environment(env)
 
+        # deprecate. fix implications
         self.num_actions = self.env.action_space.n
 
     def select_action(self):
@@ -104,8 +105,12 @@ class ValueBasedAgent(BaseAgent):
 
     def select_best_action(self, state):
 
+        # this changes if not a dictionary
+        # I can no longer shuffle, or I lost the action position
+        # what I can do is in possible actions I zip them with ther index
+
         # select all possible actions
-        possible_actions = list(self.qtable[state].items())
+        possible_actions = list(enumerate(self.qtable[state]))
         # shuffle before sorting, to ensure randomness in case of tie
         random.shuffle(possible_actions)
         # sort and get first - can also use argmax
