@@ -11,7 +11,7 @@ params = {
     "LOGGER_METHOD": "DQNLogger",
     "NETWORK_TYPE": "SimpleValueNetwork",
     "REPORTING_INTERVAL": 10,
-    "LOG_LEVEL": 1, 
+    "LOG_LEVEL": 2, 
     "NUMBER_EPISODES_MEAN": 10,
     "MEAN_REWARD_BOUND": 199,
     "NUM_TRIALS": 30,

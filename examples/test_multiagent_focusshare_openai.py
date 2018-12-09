@@ -10,11 +10,11 @@ params = {
     "METHOD": "DQN",
     "LOGGER_METHOD": "DQNLogger",
     "NETWORK_TYPE": "SimpleValueNetwork",
-    "REPORTING_INTERVAL": 10,
-    "LOG_LEVEL": 1, 
+    "REPORTING_INTERVAL": 100,
+    "LOG_LEVEL": 4, 
     "NUMBER_EPISODES_MEAN": 10,
     "MEAN_REWARD_BOUND": 199,
-    "NUM_TRIALS": 10,
+    "NUM_TRIALS": 50,
     "MAX_EPISODES": 3000,
     "EPSILON_DECAY_LAST_FRAME": 4000,
     "EPSILON_START": 1.0,
@@ -22,12 +22,13 @@ params = {
     "LEARNING_RATE": 1e-3,
     "GAMMA": 0.99,
     "REPLAY_BATCH_SIZE": 32,
-    "EXPERIENCE_BUFFER_SIZE": 5000,
+    "EXPERIENCE_BUFFER_SIZE": 10000,
     "GRADIENT_CLIPPING": False,
     "DOUBLE_QLEARNING": True,
     "SOFT_UPDATE": True, 
     "SOFT_UPDATE_TAU": 5e-3,
     "NUM_AGENTS": 2,
+    "SHARING": True,
     "FOCUSED_SHARING": True,
     "SHARE_BATCH_SIZE": 128,
     "FOCUSED_SHARING_THRESHOLD": 3
@@ -60,6 +61,10 @@ for sharing in sharings:
 # can see an improvement here, but still need to test it in minecraft
 # the last moving piece here is the sharing with prioritized experience replay
 
+# regular experience sharing
+# Method DQN took an average of 288.56 episodes for agent 0
+# Method DQN took an average of 286.60 episodes for agent 1
 
-
-
+# with focused sharing
+# Method DQN took an average of 159.56 episodes for agent 0
+# Method DQN took an average of 172.34 episodes for agent 1

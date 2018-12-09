@@ -162,6 +162,19 @@ class WinLogger(BaseLogger):
                 return True
         return False
 
+class TDLogger(WinLogger):
+
+    def log_step(self):
+        super(TDLogger, self).log_step()
+
+        if self.log_level > 4:
+            max_qval = np.max(self.agent.qtable)
+            min_qval = np.min(self.agent.qtable)
+
+            self.writer.add_scalar("q_value/min", min_qval, self.total_steps_count)
+            self.writer.add_scalar("q_value/max", max_qval, self.total_steps_count)
+
+
 class DQNLogger(WinLogger):
 
     def log_step(self):

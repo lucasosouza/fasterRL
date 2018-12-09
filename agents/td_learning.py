@@ -24,30 +24,78 @@ class TDLearning(ValueBasedAgent):
             if "SAMPLING_PER_DECISION" in params:
                 self.sampling_per_decision = params["SAMPLING_PER_DECISION"]
 
+        # agent needs to be aware to design qtable  with one extra dimension for tiles
+        self.with_tiles = False
+        if "WITH_TILES" in params:
+            self.with_tiles = params["WITH_TILES"]
+
     def set_environment(self, env):
         super(TDLearning, self).set_environment(env)
 
         # get state size
         if len(env.observation_space.shape) > 0:
-            obs_size = env.observation_space.shape
+            self.obs_size = env.observation_space.shape
         else:
-            obs_size = (env.observation_space.n,)
+            self.obs_size = (env.observation_space.n,)
 
         # get action size
         if len(env.action_space.shape) > 0:
-            action_size = env.action_space.shape
+            self.action_size = env.action_space.shape
         else:
-            action_size = (env.action_space.n,)
+            self.action_size = (env.action_space.n,)
             # still required for random action selection
             self.num_actions = env.action_space.n
 
         # initialize q-table
-        self.qtable = np.zeros(shape=obs_size+action_size)
+        if self.with_tiles:
+            # add tiles in the last dimensions
+            num_tiles = env.state_discretizer.tiles_count()
+            self.qtable = np.zeros(shape=(num_tiles, )+self.obs_size+self.action_size)
 
-        # only need to change way to access it 
-        # need to implement a get qvalue function? 
-        # probably 
-        # then also need to review the other implementations
+        else:
+            self.qtable = np.zeros(shape=self.obs_size+self.action_size)
+
+        # also need to review the other implementations inheriting from this class
+
+    def get_qvalues(self, state):
+        if self.with_tiles:
+            qvalues = []
+            for idx, s in enumerate(state):
+                qvalues.append(self.qtable[idx][s])
+            # mean over arrays
+            return np.mean(np.array(qvalues), axis=0)
+        else:
+            return self.qtable[state]
+
+    def get_qvalue(self, state, action):
+        if self.with_tiles:
+            qvalue = []
+            for idx, s in enumerate(state):
+                qvalue.append(self.qtable[idx][s][action])
+            # mean over floats
+            return np.mean(qvalue)
+        else:
+            return self.qtable[state][action]
+
+    def update_qvalue(self, state, action, step_value):
+        # method with no return
+
+        if self.with_tiles:
+            for idx, s in enumerate(state):
+                self.qtable[idx][s][action] = self.qtable[idx][s][action] + step_value       
+        else:
+            self.qtable[state][action] = self.qtable[state][action] + step_value
+
+    def select_best_action(self, state):
+
+        # select all possible actions
+        possible_actions = list(enumerate(self.get_qvalues(state)))
+        # shuffle before sorting, to ensure randomness in case of tie
+        np.random.shuffle(possible_actions)
+        # sort and get first - can also use argmax
+        action = sorted(possible_actions, key=lambda x:-x[1])[0][0]
+
+        return action
 
     def select_next_action(self, next_state):
 
@@ -65,14 +113,13 @@ class TDLearning(ValueBasedAgent):
         # calculate td_target
         if not done:        
             next_action = self.select_next_action(next_state)
-            td_target = reward + self.gamma * self.qtable[next_state][next_action]
+            td_target = reward + self.gamma * self.get_qvalue(next_state, next_action)
         else:
             td_target = reward            
             
         # update q-table
-        td_error = td_target - self.qtable[state][action]
-        self.qtable[state][action] += self.learning_rate * td_error
-
+        td_error = td_target - self.get_qvalue(state, action)
+        self.update_qvalue(state, action, self.learning_rate * td_error)
 
 class NStepsTDLearning(TDLearning):
 
@@ -137,7 +184,7 @@ class NStepsTDLearning(TDLearning):
                     """
                     p1 = ret * importance_sampling
                     t = transitions[1] # get next transition
-                    p2 = self.qtable[t.state][t.action] * (1-importance_sampling)
+                    p2 = self.get_qvalue(t.state, t.action) * (1-importance_sampling)
                     ret = p1 + p2
                 else:
                     ret = ret * importance_sampling
@@ -163,7 +210,7 @@ class NStepsTDLearning(TDLearning):
         """
 
         # calculate probability in target policy
-        sorted_actions = sorted(self.qtable[state].items(), key=lambda x:-x[1])
+        sorted_actions = sorted(self.get_qvalues(state).items(), key=lambda x:-x[1])
         max_value = sorted_actions[0][1] # first of the list, get_value
         best_actions_values = filter(lambda x:x[1]==max_value, sorted_actions)
         best_actions = list(map(lambda x:x[0], best_actions_values))

@@ -10,19 +10,20 @@ params = {
     "METHOD": "QLearning",
     "REPORTING_INTERVAL": 100,
     "LOG_LEVEL": 2,
+    "LOGGER_METHOD": "TDLogger",
     "NUMBER_EPISODES_MEAN": 10,
     "MEAN_REWARD_BOUND": 195,
-    "NUM_TRIALS": 2,
+    "NUM_TRIALS": 10,
     "MAX_EPISODES": 10000,
-    "EPSILON_DECAY_LAST_FRAME": 50000,
+    "EPSILON_DECAY_LAST_FRAME": 50000, # is thi sok
     "EPSILON_START": 1.0,
     "EPSILON_FINAL": 0.02, # 0.02
     "LEARNING_RATE": 0.05,
     "GAMMA": 0.99,
     "DISCRETIZE_STATE": True,
     "DISCRETIZE_BIN_SIZE": 10,
-    "DISCRETIZE_TYPE": 'unitary',
-    "DISCRETIZE_SAMPLING_SIZE": 10000,
+    "DISCRETIZE_STATE_TYPE": 'unitary',
+    "DISCRETIZE_STATE_SAMPLING_SIZE": 10000,
 }
 
 exp = UntilWinExperiment(params)

@@ -27,7 +27,9 @@ class MonteCarlo(TDLearning):
                 self.learn_with_importance_sampling(action, next_state, reward, done)
             else:
                 for state, action, value in self.buffer.calculate_value(self.gamma):
-                    error = value - self.qtable[state][action] 
+                    error = value - self.qtable[state][action]
+                    # will need to change how is this update in monte carlo
+                    # to account for discretization
                     self.qcount[state][action] += 1
                     self.qtable[state][action] += error/self.qcount[state][action]
 

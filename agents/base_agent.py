@@ -103,21 +103,6 @@ class ValueBasedAgent(BaseAgent):
         else:
             return self.select_best_action(self.state)
 
-    def select_best_action(self, state):
-
-        # this changes if not a dictionary
-        # I can no longer shuffle, or I lost the action position
-        # what I can do is in possible actions I zip them with ther index
-
-        # select all possible actions
-        possible_actions = list(enumerate(self.qtable[state]))
-        # shuffle before sorting, to ensure randomness in case of tie
-        random.shuffle(possible_actions)
-        # sort and get first - can also use argmax
-        action = sorted(possible_actions, key=lambda x:-x[1])[0][0]
-
-        return action
-
     def update_params(self):
 
         self.epsilon = max(self.epsilon_final, self.epsilon - self.epsilon_decay)

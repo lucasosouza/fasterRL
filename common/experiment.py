@@ -281,8 +281,8 @@ class MultiAgentExperiment(UntilWinExperiment):
                 agent.buffer.receive(transfer_batches[idx_b])
 
         # logging should be done by logger preferrably
-        if self.log_level > 1:
-            print("Number of experiences transferred: {}".format([len(tb) for tb in transfer_batches]))
+        # if self.log_level > 1:
+        #     print("Number of experiences transferred: {}".format([len(tb) for tb in transfer_batches]))
 
     # need a new method for focused experience sharing
     def focus_share(self, agents):
@@ -321,8 +321,8 @@ class MultiAgentExperiment(UntilWinExperiment):
             tb_sizes.append(num_experiences_received)
 
         # report
-        if self.log_level > 1:
-            print("Number of experiences transferred: {}".format(tb_sizes))
+        # if self.log_level > 1:
+        #     print("Number of experiences transferred: {}".format(tb_sizes))
 
 
 """

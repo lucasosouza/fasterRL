@@ -1,7 +1,7 @@
 import sys
 sys.path.append("../../")
 
-from fasterRL.common import BaseExperiment, UntilWinExperiment
+from fasterRL.common.experiment import BaseExperiment, UntilWinExperiment
 
 # "ENV_NAME": "CartPole-v0",
 params = {
@@ -9,10 +9,10 @@ params = {
     "ENV_NAME": "FrozenLake-v0",
     "METHOD": "DiscreteQLearning",
     "REPORTING_INTERVAL": 100,
-    "LOG_LEVEL": 1,
+    "LOG_LEVEL": 2,
     "NUMBER_EPISODES_MEAN": 10,
     "MEAN_REWARD_BOUND": .8,
-    "NUM_TRIALS": 30,
+    "NUM_TRIALS": 3, # compare discrete algorithms - did anything broke?
     "MAX_EPISODES": 1000,
     "EPSILON_DECAY_LAST_FRAME": 4000,
     "EPSILON_START": 1.0,
@@ -43,3 +43,14 @@ for method, result in zip(methods, results):
 # Method EveryVisitMonteCarlo took an average of 304.73 episodes
 # Method NStepsQLearning took an average of 287.47 episodes
 # Method NStepsSarsa took an average of 300.37 episodes
+
+
+# results in Nov-29 (3 trials only)
+# nothing out of ordinary
+# issue still in discretization
+# Method QLearning took an average of 313.67 episodes
+# Method Sarsa took an average of 348.33 episodes
+# Method FirstVisitMonteCarlo took an average of 320.67 episodes
+# Method EveryVisitMonteCarlo took an average of 329.67 episodes
+# Method NStepsQLearning took an average of 285.33 episodes
+# Method NStepsSarsa took an average of 284.33 episodes

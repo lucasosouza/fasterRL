@@ -1,6 +1,7 @@
 from .base_agent import ValueBasedAgent
 from fasterRL.common.network import *
 from fasterRL.common.buffer import *
+from fasterRL.common.multiagent_buffer import *
 
 import torch
 import torch.optim as optim
@@ -93,7 +94,7 @@ class DQN(ValueBasedAgent):
         if self.prioritized_replay and not self.focused_sharing:
             self.buffer = PrioReplayBuffer(self.experience_buffer_size, self.prio_replay_alpha)
         elif self.focused_sharing:
-            # if it has variables in more than one dimension (image), special buffer
+            # if it has variables in more than one dimension (image), special buffer            
             if len(env.observation_space.shape) > 1:
                 # image
                 if self.prioritized_replay:
@@ -107,7 +108,7 @@ class DQN(ValueBasedAgent):
                 else:
                     self.buffer = ExperienceBufferGrid(self.experience_buffer_size)
             # set the grid
-            self.buffer.set_grid(env.observation_space, env.action_space)
+            self.buffer.set_grid(env.state_discretizer, env.action_space.n)
         else:
             self.buffer = ExperienceBuffer(self.experience_buffer_size)
 
@@ -159,7 +160,8 @@ class DQN(ValueBasedAgent):
     def learn(self, action, next_state, reward, done):
 
         # append experience to buffer
-        self.buffer.append(Experience(self.state, action, reward, done, next_state))
+        exp = Experience(self.state, action, reward, done, next_state)
+        self.buffer.append(exp)
 
         ## learn when there are enough batch samples
         ## ideally I should accumulate a mass of experiences before starting to learn
@@ -297,6 +299,7 @@ class DQN(ValueBasedAgent):
     def calc_loss_with_priorities(self, batch, batch_weights):
 
         states_v, next_states_v, rewards_v, actions_v, done_mask = self.unpack_batch(batch)
+        # batch weights are importance sampling weights
         batch_weights_v = torch.tensor(batch_weights).to(self.device)
 
         # calculate state action values

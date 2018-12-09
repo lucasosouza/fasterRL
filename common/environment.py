@@ -52,67 +52,99 @@ class BaseEnv():
         if "RENDER" in params:
             self.render = params["RENDER"]
 
-        # implements state discretization
         self.discretize_state = False
+
+        # overrides default for experience sharing, setting for passive mode
+        self.sharing = False
+        if "SHARING" in params:
+            self.sharing = params["SHARING"]
+
+        self.focused_sharing = False
+        if "FOCUSED_SHARING" in params:
+            self.focused_sharing = params["FOCUSED_SHARING"]
+
+        self.passive = False
+        if self.sharing or self.focused_sharing:
+            self.passive = True
+            self.discretize_state = True
+
+        # implements state discretization
         if "DISCRETIZE_STATE" in params:
             self.discretize_state = params["DISCRETIZE_STATE"]
-            if self.discretize_state:
-                # get bin size, if available
-                bin_size = False
-                if "DISCRETIZE_STATE_BIN_SIZE" in params:
-                    bin_size = params["DISCRETIZE_STATE_BIN_SIZE"]
-                # or bin sizes for all vars, if availables
-                bin_sizes = False
-                if "DISCRETIZE_STATE_BIN_SIZES" in params:
-                    bin_sizes = params["DISCRETIZE_STATE_BIN_SIZES"]
 
-                # initialize discretizer
+        if self.discretize_state:
+            # get bin size, if available
+            bin_size = False
+            if "DISCRETIZE_STATE_BIN_SIZE" in params:
+                bin_size = params["DISCRETIZE_STATE_BIN_SIZE"]
+            # or bin sizes for all vars, if availables
+            bin_sizes = False
+            if "DISCRETIZE_STATE_BIN_SIZES" in params:
+                bin_sizes = params["DISCRETIZE_STATE_BIN_SIZES"]
+
+            # see whether or not to use tile coding
+            with_tiles = False
+            if "WITH_TILES" in params:
+                with_tiles = params["WITH_TILES"]
+                tile_offsets = None
+                if "TILE_OFFSETS" in params:
+                    tile_offsets = params["TILE_OFFSETS"]
+
+            # initialize discretizer
+            if with_tiles:
+                self.state_discretizer = TileDiscretizer(self.observation_space, bin_size, bin_sizes, tile_offsets)
+            else:
                 self.state_discretizer = Discretizer(self.observation_space, bin_size, bin_sizes)
-                # change observation space
-                self.observation_space.shape = tuple(self.state_discretizer.bin_sizes)
 
-                discretize_type = 'unitary'
-                if "DISCRETIZE_STATE_TYPE" in params:
-                    discretize_type = params["DISCRETIZE_STATE_TYPE"]
-                    # if not unitary, do sampling
-                    discretize_sampling_size = 1000
-                    if "DISCRETIZE_STATE_SAMPLING_SIZE" in params:
-                        discretize_sampling_size = params["DISCRETIZE_STATE_SAMPLING_SIZE"]
-                    if discretize_type == 'true_sampling':
-                        self.random_true_sampling(discretize_sampling_size, type='state')
-                    if discretize_type == 'false_sampling':
-                        self.random_false_sampling(discretize_sampling_size, type='state')
+            discretize_type = 'unitary'
+            if "DISCRETIZE_STATE_TYPE" in params:
+                discretize_type = params["DISCRETIZE_STATE_TYPE"]
+                # if not unitary, do sampling
+                discretize_sampling_size = 1000
+                if "DISCRETIZE_STATE_SAMPLING_SIZE" in params:
+                    discretize_sampling_size = params["DISCRETIZE_STATE_SAMPLING_SIZE"]
+                if discretize_type == 'true_sampling':
+                    self.random_true_sampling(discretize_sampling_size, type='state')
+                if discretize_type == 'false_sampling':
+                    self.random_false_sampling(discretize_sampling_size, type='state')
+
+            # change observation space
+            if not self.passive:
+                self.observation_space.shape = tuple(self.state_discretizer.bin_sizes)
 
         # implements action discretization
         self.discretize_action = False
         if "DISCRETIZE_ACTION" in params:
             self.discretize_action = params["DISCRETIZE_ACTION"]
-            if self.discretize_action:
-                # get bin size, if available
-                bin_size = False
-                if "DISCRETIZE_ACTION_BIN_SIZE" in params:
-                    bin_size = params["DISCRETIZE_ACTION_BIN_SIZE"]
-                # or bin sizes for all vars, if availables
-                bin_sizes = False
-                if "DISCRETIZE_ACTION_BIN_SIZES" in params:
-                    bin_sizes = params["DISCRETIZE_ACTION_BIN_SIZES"]
 
-                # initialize discretizer
-                self.action_discretizer = ActionDiscretizer(self.action_space, bin_size, bin_sizes)
-                # change action space
+        if self.discretize_action:
+            # get bin size, if available
+            bin_size = False
+            if "DISCRETIZE_ACTION_BIN_SIZE" in params:
+                bin_size = params["DISCRETIZE_ACTION_BIN_SIZE"]
+            # or bin sizes for all vars, if availables
+            bin_sizes = False
+            if "DISCRETIZE_ACTION_BIN_SIZES" in params:
+                bin_sizes = params["DISCRETIZE_ACTION_BIN_SIZES"]
+
+            # initialize discretizer
+            self.action_discretizer = ActionDiscretizer(self.action_space, bin_size, bin_sizes)
+
+            discretize_type = 'unitary'
+            if "DISCRETIZE_ACTION_TYPE" in params:
+                discretize_type = params["DISCRETIZE_ACTION_TYPE"]
+                # if not unitary, do sampling
+                discretize_sampling_size = 1000
+                if "DISCRETIZE_ACTION_SAMPLING_SIZE" in params:
+                    discretize_sampling_size = params["DISCRETIZE_ACTION_SAMPLING_SIZE"]
+                # no true sampling allowed for actions, only false sampling
+                if discretize_type == 'sampling':
+                    self.random_false_sampling(discretize_sampling_size, type='action')
+
+            # change action space
+            if not self.passive:
                 self.action_space.shape = ()
                 self.action_space.n = int(np.prod(self.action_discretizer.bin_sizes))
-
-                discretize_type = 'unitary'
-                if "DISCRETIZE_ACTION_TYPE" in params:
-                    discretize_type = params["DISCRETIZE_ACTION_TYPE"]
-                    # if not unitary, do sampling
-                    discretize_sampling_size = 1000
-                    if "DISCRETIZE_ACTION_SAMPLING_SIZE" in params:
-                        discretize_sampling_size = params["DISCRETIZE_ACTION_SAMPLING_SIZE"]
-                    # no true sampling allowed for actions, only false sampling
-                    if discretize_type == 'sampling':
-                        self.random_false_sampling(discretize_sampling_size, type='action')
 
         # unpack relevant parameters
         self.reward_scaling_factor = None
@@ -125,10 +157,10 @@ class BaseEnv():
     # redirect several methods
     def step(self, action, sampling=False):
 
-        if self.discretize_action:
+        # discretize action, if required
+        if self.discretize_action and not self.passive:
             action = self.action_discretizer.revert(action)
 
-        # what do I usually get when I step? 
         observation, reward, done, info = self.env.step(action)
 
         # short circuit and return before if stepping for samples only
@@ -145,7 +177,7 @@ class BaseEnv():
                 self.env.render('human') # specific for minecraft 
 
         # discretize observation, if required
-        if self.discretize_state:
+        if self.discretize_state and not self.passive:
             observation = self.state_discretizer.convert(observation)
 
         return observation, reward, done, info
@@ -174,7 +206,7 @@ class BaseEnv():
         observation = self.env.reset()
 
         # discretize observation, if required
-        if self.discretize_state:
+        if self.discretize_state and not self.passive:
             observation = self.state_discretizer.convert(observation)
 
         return observation
@@ -189,12 +221,14 @@ class BaseEnv():
 
         samples = []
    
+        # randomly samples states
         if type == 'state':
             for i in range(count):
                 samples.append(self.env.observation_space.sample())
 
             self.state_discretizer.define_bins_from_samples(samples)
 
+        # randomly sample actions
         elif type == 'action':
             for i in range(count):
                 samples.append(self.env.action_space.sample())
