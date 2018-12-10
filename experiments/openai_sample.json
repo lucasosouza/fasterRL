@@ -1,0 +1,6 @@
+{
+    "DEFAULT_ENV_NAME": "CartPole-v0",
+    "METHOD": "Base",
+    "NUM_TRIALS": 1,
+    "NUM_EPISODES": 2
+}
