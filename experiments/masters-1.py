@@ -32,7 +32,7 @@ dqn = {
     "LOG_LEVEL": 2,
     "NUMBER_EPISODES_MEAN": 10,
     "MEAN_REWARD_BOUND": 199,
-    "NUM_TRIALS": 2,
+    "NUM_TRIALS": 100,
     "MAX_EPISODES": 1000,
     "EPSILON_DECAY_LAST_FRAME": 4000,
     "EPSILON_START": 1.0,
@@ -61,7 +61,7 @@ sharing = {
     "NUM_AGENTS": 2,
     "SHARE_BATCH_SIZE": 128,
     "SHARING": True,
-    "NUM_TRIALS": 2,  
+    "NUM_TRIALS": 50,  
 }
 
 dqn_sharing = dqn.copy()
@@ -85,7 +85,7 @@ dqn_prio_focus_sharing.update(prio)
 dqn_prio_focus_sharing.update(focus)
 
 ## prepare the experiment
-exp_group = 'masters1'
+exp_group = 'masters2'
 experiments = {
     'dqn': dqn,
     'dqn_prio': dqn_prio,
