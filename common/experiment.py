@@ -4,16 +4,17 @@ from fasterRL.common.environment import *
 
 import os
 from datetime import datetime
-from time import sleep
+from time import sleep, time
 import json
 from collections import namedtuple, defaultdict
+import numpy as np
 
 
 AgentExperiment = namedtuple('AgentExperiment', field_names=['env', 'agent', 'logger'])
 
 class BaseExperiment:
 
-    def __init__(self, params):
+    def __init__(self, params, experiment_name=None, experiment_group=None):
 
         self.params = params
 
@@ -28,15 +29,31 @@ class BaseExperiment:
         # create an ID for the experiment
         now = datetime.strftime(datetime.now(), "%Y%m%d-%H%M%S-%f")[:-4]
         sleep(0.01) # intentional delay, avoids having file with exact name
-        experiment_id = "-".join([params["METHOD"], params["ENV_NAME"], now])
+        if not experiment_name:
+            experiment_id = "-".join([params["METHOD"], params["ENV_NAME"], now])
+        else:
+            experiment_id = experiment_name
 
         # dumps json with experiment hyperparameters
-        with open(os.path.join(log_root, "logs", experiment_id + ".json"), "w") as f:
+        if experiment_group:
+            os.makedirs(os.path.join(log_root, "logs", experiment_group), exist_ok=True)
+            params_log_path = os.path.join(log_root, "logs", experiment_group, experiment_id + ".json")
+        else:
+            params_log_path = os.path.join(log_root, "logs", experiment_id + ".json")
+
+        with open(params_log_path, "w") as f:
             json.dump(params, f)
 
+        # log paths, tensorboard agents specifics and trial overall json
+        # don't use groups for runs yet until the impact on tensorboard is clear
         self.log_dir = os.path.join(log_root, "runs", experiment_id)
-        # save path for local method
-        self.local_log_path = os.path.join(log_root, "results", experiment_id + '.json')
+
+        # set path for local results
+        if experiment_group:
+            os.makedirs(os.path.join(log_root, "results", experiment_group), exist_ok=True)
+            local_log_path = os.path.join(log_root, "results", experiment_group, experiment_id + '.json')
+        else:
+            local_log_path = os.path.join(log_root, "results", experiment_id + '.json')
 
         self.num_trials = 1
         if "NUM_TRIALS" in self.params:
@@ -68,6 +85,8 @@ class BaseExperiment:
         self.env_method = BaseEnv
         self.logger_method = BaseLogger
 
+        self.exp_logger = ExperimentLogger(local_log_path)
+
         if self.log_level > 1:
             print("Initializing experiment: ", experiment_id)
 
@@ -75,7 +94,20 @@ class BaseExperiment:
 
         # training loop
         for trial in range(self.num_trials):
-            self.run_trial(trial)
+            t0 = time()
+            episodes, avg_reward, avg_steps = self.run_trial(trial)
+
+            # update logger
+            time_spent = time() - t0
+            self.exp_logger.update(time_spent, episodes, avg_reward, avg_steps)
+
+        # print to screen
+        if self.log_level > 1:
+            self.exp_logger.report()
+            self.exp_logger.save()
+                       
+        # ensuring backwards compatibility
+        return np.mean(self.exp_logger.episodes_to_complete)
 
     def init_instances(self, trial, alias="agent", color=-1):
 
@@ -100,6 +132,8 @@ class BaseExperiment:
         for episode in range(self.num_episodes):
             self.run_episode(agent, logger)
         logger.end_training()
+
+        return logger.episode_count, np.mean(logger.rewards), np.mean(logger.steps)
 
     def run_episode(self, agent, logger):
 
@@ -126,8 +160,8 @@ class BaseExperiment:
 class UntilWinExperiment(BaseExperiment):
     """ agent plays until it wins. may define a max number of episodes """ 
 
-    def __init__(self, params):
-        super(UntilWinExperiment, self).__init__(params)
+    def __init__(self, params, experiment_name=None, experiment_group=None):
+        super(UntilWinExperiment, self).__init__(params, experiment_name, experiment_group)
 
         # unpack params
         self.max_episodes = 1
@@ -150,25 +184,8 @@ class UntilWinExperiment(BaseExperiment):
             self.run_episode(agent, logger)
         logger.end_training()
 
-        return logger.episode_count
-
         # can print results here, besides from returning
-
-    def run(self):
-        """ Modified to return the average number of episodes to finish 
-            If not finished, return max (an oversimplification)
-        """
-
-        all_trial_episodes = []
-        for trial in range(self.num_trials):
-            num_episodes = self.run_trial(trial)
-            all_trial_episodes.append(num_episodes)
-
-        average_number_of_episodes = sum(all_trial_episodes)/len(all_trial_episodes)
-
-        if self.log_level > 1:
-            print("Average number of episodes for trial: {:.2f}".format(average_number_of_episodes))                       
-        return average_number_of_episodes
+        return logger.episode_count, np.mean(logger.rewards), np.mean(logger.steps)
 
 
 class MultiAgentExperiment(UntilWinExperiment):
@@ -176,8 +193,8 @@ class MultiAgentExperiment(UntilWinExperiment):
         Modifications are done only to run and run trial functions
     """
 
-    def __init__(self, params):
-        super(MultiAgentExperiment, self).__init__(params)
+    def __init__(self, params, experiment_name=None, experiment_group=None):
+        super(MultiAgentExperiment, self).__init__(params, experiment_name, experiment_group)
 
         # unpack params
         self.num_agents = 1
@@ -210,16 +227,22 @@ class MultiAgentExperiment(UntilWinExperiment):
             Adaptations for multiagent.
         """
 
-        all_trial_episodes = []
-        for idx_a in range(self.num_agents):
-            all_trial_episodes.append([])
-
+        t0 = time()
         for trial in range(self.num_trials):
             multiagent_num_episodes = self.run_trial(trial)
-            for idx_a, num_episodes in enumerate(multiagent_num_episodes):
-                all_trial_episodes[idx_a].append(num_episodes)
 
-        return [sum(l)/len(l) for l in all_trial_episodes]  
+            # update logger
+            time_spent = (time() - t0) / len(multiagent_num_episodes)
+            for episodes, avg_reward, avg_steps, exp_received in multiagent_num_episodes:
+                self.exp_logger.update(time_spent, episodes, avg_reward, avg_steps, exp_received)
+
+        # print to screen and save logger results
+        if self.log_level > 1:
+            self.exp_logger.report()
+            self.exp_logger.save()
+
+        # ensuring backwards compatibility
+        return np.mean(self.exp_logger.episodes_to_complete)
 
 
     def run_trial(self, trial):
@@ -239,6 +262,9 @@ class MultiAgentExperiment(UntilWinExperiment):
         for a in agents:
             a.logger.start_training()
 
+        # initialize a variable to count the number of experiences shared
+        self.experiences_shared = 0
+
         # alternate between agents to run episodes
         while sum([a.agent.completed for a in agents]) != len(agents):
             # one round of training
@@ -249,42 +275,43 @@ class MultiAgentExperiment(UntilWinExperiment):
                     a.agent.completed = True
             # one round of experience sharing
             if self.sharing:
-                self.share([a.agent for a in agents])
+                self.share(agents) # replace by full since need logger as well
             elif self.focused_sharing:
-                self.focus_share([a.agent for a in agents])
+                self.focus_share(agents)
 
         # end training
         for a in agents:
             a.logger.end_training()
-    
-        return [a.logger.episode_count for a in agents]
+
+        return [(a.logger.episode_count, np.mean(a.logger.rewards), np.mean(a.logger.steps), a.logger.experiences_received) for a in agents]
 
     def share(self, agents):
-        """ For now accomodates two agents. Increase functionalities later 
-            can make this for N number of agents, but need to define rules.
-            Ideally should not talk directly to buffer
+        """ Allow transfer between N agents
+            Ideally should not talk directly to buffer (currently does)
+
         """
 
         # init list to store all transfer batches
         transfer_batches = []
 
         # select experiences to share
-        for agent in agents:
-            transfer_batch = agent.buffer.select_batch(self.share_batch_size)
+        for a in agents:
+            transfer_batch = a.agent.buffer.select_batch(self.share_batch_size)
             transfer_batches.append(transfer_batch)
 
         # receive experiences from all other agents
-        for idx_a, agent in enumerate(agents):
-            batch_indices = list(range(len(agents)))
-            batch_indices.pop(idx_a) # agent should not receive his own experiences
-            for idx_b in batch_indices:
-                agent.buffer.receive(transfer_batches[idx_b])
+        for idx_a, a in enumerate(agents):
+            # agents who have completed episodes do not need more experiences
+            if not a.agent.completed:
+                batch_indices = list(range(len(agents)))
+                batch_indices.pop(idx_a) # agent should not receive his own experiences
+                for idx_b in batch_indices:
+                    a.agent.buffer.receive(transfer_batches[idx_b])
+                    a.logger.experiences_received += len(transfer_batches[idx_b])
 
-        # logging should be done by logger preferrably
-        # if self.log_level > 1:
-        #     print("Number of experiences transferred: {}".format([len(tb) for tb in transfer_batches]))
+        if self.log_level > 4:
+            print("Number of experiences transferred: {}".format([len(tb) for tb in transfer_batches]))
 
-    # need a new method for focused experience sharing
     def focus_share(self, agents):
         """ For now accomodates two agents. Increase functionalities later 
             can make this for N number of agents, but need to define rules.
@@ -296,33 +323,38 @@ class MultiAgentExperiment(UntilWinExperiment):
 
         # each agent puts forward a request wit experiences wanted
         transfer_requests = [] 
-        for agent in agents:
-            transfer_request = agent.buffer.identify_unexplored(threshold=self.focused_sharing_threshold)
+        for a in agents:
+            transfer_request = a.agent.buffer.identify_unexplored(threshold=self.focused_sharing_threshold)
             transfer_requests.append(transfer_request)
 
         # for each request, gather transfers
         transfer_batches = defaultdict(list)
         for idx_r, request in enumerate(transfer_requests):
             # all agents respond to request
-            for idx_a, agent in enumerate(agents):
+            for idx_a, a in enumerate(agents):
                 # unless its the agents own request
                 if idx_r != idx_a:
-                    transfer_batch = agent.buffer.select_batch_with_mask(self.share_batch_size, request)
+                    transfer_batch = a.agent.buffer.select_batch_with_mask(self.share_batch_size, request)
                     transfer_batches[idx_r].append(transfer_batch)
 
         # each agent receives the transfers sent to it
         tb_sizes = []
         for idx_a, batches in transfer_batches.items():
-            agent = agents[idx_a]
+            a = agents[idx_a]
             num_experiences_received = 0
-            for batch in batches:              
-                agent.buffer.receive(batch)
-                num_experiences_received += len(batch)
+            # agents who have completed episodes do not need more experiences
+            if not a.agent.completed:
+                for batch in batches:              
+                    a.agent.buffer.receive(batch)
+                    a.logger.experiences_received += len(batch)
+                    num_experiences_received += len(batch)
             tb_sizes.append(num_experiences_received)
 
+        # removed tb sizes - replaced by logger
+
         # report
-        # if self.log_level > 1:
-        #     print("Number of experiences transferred: {}".format(tb_sizes))
+        if self.log_level > 4:
+            print("Number of experiences transferred: {}".format(tb_sizes))
 
 
 """
@@ -333,7 +365,6 @@ class MultiAgentExperiment(UntilWinExperiment):
 # I can maybe come up with a hash kind of algorithm to identify an experience
 # and how do I check all hashes before I add an experience?
 # this is something to look at later
-
 
 to consider it later:
 

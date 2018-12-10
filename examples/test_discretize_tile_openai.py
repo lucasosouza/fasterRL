@@ -14,7 +14,7 @@ params = {
     "LOGGER_METHOD": "TDLogger",
     "NUMBER_EPISODES_MEAN": 10,
     "MEAN_REWARD_BOUND": 195,
-    "NUM_TRIALS": 5,
+    "NUM_TRIALS": 2, # 5
     "MAX_EPISODES": 10000,
     "EPSILON_DECAY_LAST_FRAME": 50000,
     "EPSILON_START": 1.0,
@@ -32,7 +32,9 @@ params = {
 
 # was working - maybe something changed?
 
-exp = UntilWinExperiment(params)
+exp_group = "tests"
+exp_name = "testDiscretizationExperimentv2"
+exp = UntilWinExperiment(params, exp_name, exp_group)
 exp.run()
 
 # with TILES default : Average number of episodes for trial: 961.20

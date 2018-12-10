@@ -13,8 +13,8 @@ params = {
     "REPORTING_INTERVAL": 10,
     "LOG_LEVEL": 2, 
     "NUMBER_EPISODES_MEAN": 10,
-    "MEAN_REWARD_BOUND": 199,
-    "NUM_TRIALS": 30,
+    "MEAN_REWARD_BOUND": 130,# 199 
+    "NUM_TRIALS": 2,
     "MAX_EPISODES": 3000,
     "EPSILON_DECAY_LAST_FRAME": 4000,
     "EPSILON_START": 1.0,
@@ -29,18 +29,16 @@ params = {
     "SOFT_UPDATE_TAU": 5e-3,
     "NUM_AGENTS": 2,
     "SHARING": True,
-    "SHARE_BATCH_SIZE": 128,
+    "SHARE_BATCH_SIZE": 100,
 }
 
-sharings = [False, True]
+sharings = [True]
 for sharing in sharings:
     params["SHARING"] = sharing
     exp = MultiAgentExperiment(params)
     result = exp.run()        
     print("Sharing: {}".format(sharing))
-    for idx_a, res in enumerate(result):
-        print("Method {} took an average of {:.2f} episodes for agent {}".format(
-            params["METHOD"], res, idx_a))
+    print("Method {} took an average of {:.2f} episodes".format(params["METHOD"], result))
 
 # Method DQN took an average of 263.90 episodes
 

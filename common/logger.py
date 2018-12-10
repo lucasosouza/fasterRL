@@ -3,6 +3,63 @@ from tensorboardX import SummaryWriter
 import os
 import numpy as np
 from termcolor import colored
+import json
+
+class ExperimentLogger():
+    """ 
+        Logger that keeps track of metrics per trial
+        - episodes taken for completion 
+        - average rewards
+        - average steps
+        - number of experiences shared
+        - trial speed
+
+        These are the main parameters I would like to keep track for my experiments
+    """
+
+    def __init__(self, local_log_path):
+        pass 
+
+        # creates a list of metrics for every trial
+        self.average_rewards = []
+        self.average_steps = []
+        self.experiences_received = []
+        self.episodes_to_complete = []
+        self.execution_times = []
+
+        # directory to save data
+        self.log_path = local_log_path 
+
+    def update(self, time_spent, episodes, avg_reward, avg_steps, exp_received=0):
+        """ Update values """
+
+        self.execution_times.append(time_spent)
+        self.episodes_to_complete.append(episodes)
+        self.average_rewards.append(avg_reward)
+        self.average_steps.append(avg_steps)
+        self.experiences_received.append(exp_received)
+
+    def report(self):
+        """ Print to screen logging. Keep it as clean as possible """
+
+        print("Average number of episodes: {:.2f}".format(np.mean(self.episodes_to_complete)))
+
+    def save(self):
+
+        # output local log json
+        local_log = {
+            "average_rewards": self.average_rewards,
+            "average_steps": self.average_steps,
+            "execution_times": self.execution_times, 
+            "episodes_to_complete": self.episodes_to_complete,
+            "experiences_received": self.experiences_received
+        }
+
+        with open( self.log_path , "w") as f:
+            json.dump(local_log, f)
+
+        # Inform experiment is done
+        print("Experiment complet. Results found at: " + self.log_path)
 
 class BaseLogger():
 
@@ -50,6 +107,7 @@ class BaseLogger():
 
         # bookkeeping
         self.episode_reward = 0
+        self.experiences_received = 0 # added for multiagent
         self.rewards = []
         self.steps = []
 

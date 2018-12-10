@@ -7,6 +7,7 @@ class ExperienceBufferGrid(ExperienceBuffer):
         # uses a list instead
         self.buffer = []
         self.capacity = capacity
+        self.pos = 0
 
     def set_grid(self, discretizer, action_size):
 
@@ -50,21 +51,33 @@ class ExperienceBufferGrid(ExperienceBuffer):
 
         position_new = self.get_position(experience)
         # store in grid
-        self.grid_experiences[position_new].append(experience)
+        # can keep track of position in buffer
+        self.grid_experiences[position_new].append((experience, self.pos))
         # add to counter
         self.grid_occupancy[position_new] += 1
 
     def append(self, experience):
         """ Adds to grid as well as appending to buffer. Remove if buffer full """ 
 
-        self.buffer.append(experience)
+        # adds to buffer, based on rotating queue
+        if len(self.buffer) < self.capacity:
+            # if buffer not full, append new transition
+            self.buffer.append(experience)
+        else:
+            # identify experience to remove
+            experience_to_delete = self.buffer[self.pos]
+            # remove from the grid
+            self.remove_from_grid(experience_to_delete)    
+            # overwrite last position
+            self.buffer[self.pos] = experience
+
+        # adds to grid
         self.add_to_grid(experience)
 
-        # check if a state needs to be removed
-        if len(self.buffer) > self.capacity:
-            # remove from buffer
-            experience_to_delete = self.buffer.pop(0)
-            self.remove_from_grid(experience_to_delete)    
+        # updates position for next experience
+        # adjust position - when ends, goes back to zero
+        self.pos = (self.pos + 1) % self.capacity
+
 
     def select_batch_with_mask(self, batch_size, mask):
         """ Sample from experience batch based on predetermined rules.
@@ -80,7 +93,8 @@ class ExperienceBufferGrid(ExperienceBuffer):
         if selected_batch_size > 0:
             # select indices
             indices = np.random.choice(len(selected_experiences), selected_batch_size, replace=False)
-            return [selected_experiences[idx] for idx in indices]
+            # added [0] to get experience out of tuple
+            return [selected_experiences[idx][0] for idx in indices] 
 
         # else return an empty array to standardize output
         else:
@@ -136,7 +150,6 @@ class ExperienceBufferGridImage(ExperienceBufferGrid):
         return position
 
 
-
 class PrioExperienceBufferGrid(PrioReplayBuffer, ExperienceBufferGrid):
 
     def append(self, experience):
@@ -161,6 +174,30 @@ class PrioExperienceBufferGrid(PrioReplayBuffer, ExperienceBufferGrid):
         self.priorities[self.pos] = max_prio
         # adjust position - when ends, goes back to zero
         self.pos = (self.pos + 1) % self.capacity
+
+    def select_batch_with_mask(self, batch_size, mask):
+        """ Sample from experience batch based on predetermined rules.
+        Main 'meat' from the class is in this method """
+        
+        # filter only relevant experiences
+        selected_experiences = reduce(lambda x,y: x+y, list(self.grid_experiences[mask]))
+        selected_batch_size = min(batch_size, len(selected_experiences))
+
+        if selected_batch_size > 0:
+            # now I have a way to g
+            indices = [exp[1] for exp in selected_experiences]
+            prios = np.array(self.priorities)[indices]
+
+            # do I need this operation just for sampling? not sure, check later
+            probs = prios ** self.prob_alpha
+            probs /= probs.sum()
+
+            # with probabilities, sample from selected experiences 
+            final_indices = np.random.choice(len(selected_experiences), batch_size, p=probs)
+            return [selected_experiences[idx][0] for idx in final_indices]
+
+        else:
+            return []
 
 
 class PrioExperienceBufferGridImage(PrioExperienceBufferGrid, ExperienceBufferGridImage):

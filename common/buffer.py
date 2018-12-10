@@ -218,6 +218,28 @@ class PrioReplayBuffer(ExperienceBuffer):
         # adjust position - when ends, goes back to zero
         self.pos = (self.pos + 1) % self.capacity
 
+    def select_batch(self, batch_size): 
+        """ Need to similar calculation as in samples, but do not do any updates or calculate weights are needed.
+
+            Don't need beta since no importance sampling is done in the method
+        """
+
+        # restrict to number of experiences available
+        batch_size = min(batch_size, len(self.buffer))
+
+        # calculate probabilities
+        if len(self.buffer) == self.capacity:
+            prios = self.priorities
+        else:
+            prios = self.priorities[:self.pos]
+        probs = prios ** self.prob_alpha
+        probs /= probs.sum()
+
+        # with probabilities, sample buffer
+        indices = np.random.choice(len(self.buffer), batch_size, p=probs)
+
+        return [self.buffer[idx] for idx in indices]
+
     def sample(self, batch_size, beta=0.4):
         """ Convert priorities to probabilities using alpha parameters """
 

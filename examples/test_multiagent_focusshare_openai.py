@@ -10,11 +10,11 @@ params = {
     "METHOD": "DQN",
     "LOGGER_METHOD": "DQNLogger",
     "NETWORK_TYPE": "SimpleValueNetwork",
-    "REPORTING_INTERVAL": 100,
-    "LOG_LEVEL": 4, 
+    "REPORTING_INTERVAL": 10,
+    "LOG_LEVEL": 2, 
     "NUMBER_EPISODES_MEAN": 10,
-    "MEAN_REWARD_BOUND": 199,
-    "NUM_TRIALS": 50,
+    "MEAN_REWARD_BOUND": 130, # 199,
+    "NUM_TRIALS": 2, #50
     "MAX_EPISODES": 3000,
     "EPSILON_DECAY_LAST_FRAME": 4000,
     "EPSILON_START": 1.0,
@@ -30,8 +30,8 @@ params = {
     "NUM_AGENTS": 2,
     "SHARING": True,
     "FOCUSED_SHARING": True,
-    "SHARE_BATCH_SIZE": 128,
-    "FOCUSED_SHARING_THRESHOLD": 3
+    "SHARE_BATCH_SIZE": 100, # 128
+    "FOCUSED_SHARING_THRESHOLD": 10
 }
 
 sharings = [True]
@@ -40,9 +40,7 @@ for sharing in sharings:
     exp = MultiAgentExperiment(params)
     result = exp.run()        
     print("Sharing: {}".format(sharing))
-    for idx_a, res in enumerate(result):
-        print("Method {} took an average of {:.2f} episodes for agent {}".format(
-            params["METHOD"], res, idx_a))
+    print("Method {} took an average of {:.2f} episodes".format(params["METHOD"], result))
 
 # Method DQN took an average of 263.90 episodes
 

@@ -24,9 +24,6 @@ params = {
 
 exp = MultiAgentExperiment(params)
 result = exp.run()
-for idx_a, res in enumerate(result):
-    print("Method {} took an average of {:.2f} episodes for agent {}".format(
-        params["METHOD"], res, idx_a))
 
 
     

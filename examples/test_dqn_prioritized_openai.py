@@ -1,18 +1,8 @@
 import sys
 sys.path.append("../../")
 
-from fasterRL.common import BaseExperiment, UntilWinExperiment
+from fasterRL.common.experiment import UntilWinExperiment, MultiAgentExperiment
 
-"""
-    LOG LEVELS:
-    1 - report nothing, just run
-    2 - print to screen
-    3 - log episode-wise variables
-    4 - log step-wise variable
-    5 - log specifics relevant for debugging
-"""
-
-# "ENV_NAME": "CartPole-v0",
 params = {
     "PLATFORM": "openai",
     "ENV_NAME": "CartPole-v0",
@@ -22,8 +12,8 @@ params = {
     "REPORTING_INTERVAL": 10,
     "LOG_LEVEL": 2, #debugging level
     "NUMBER_EPISODES_MEAN": 10,
-    "MEAN_REWARD_BOUND": 199,
-    "NUM_TRIALS": 10,
+    "MEAN_REWARD_BOUND": 130, # 199,
+    "NUM_TRIALS": 2, # 10,
     "MAX_EPISODES": 3000,
     "EPSILON_DECAY_LAST_FRAME": 4000, # 4000
     "EPSILON_START": 1.0,
@@ -43,6 +33,18 @@ params = {
 }
 
 exp = UntilWinExperiment(params)
+
+# add sharing
+new_params = {
+    "NUM_AGENTS": 2,
+    "SHARE_BATCH_SIZE": 128,
+    "SHARING": True,
+    "FOCUSED_SHARING": True,
+    "FOCUSED_SHARING_THRESHOLD": 3,
+}
+params.update(new_params)
+exp = MultiAgentExperiment(params)
+
 result = exp.run()
 print("Method {} took an average of {:.2f} episodes".format(params["METHOD"], result))
 
