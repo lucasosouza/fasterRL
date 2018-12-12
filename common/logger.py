@@ -73,8 +73,8 @@ class BaseLogger():
             5 - log specifics relevant for debugging
         """
 
-
         colors = ['blue','red','green','cyan','yellow','magenta','grey','white']
+        color = color % len(colors) # only 8 colors available in termcolor
         self.color = colors[color]
 
         self.log_level = 2
