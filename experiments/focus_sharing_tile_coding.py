@@ -1,15 +1,19 @@
 """
 Experiment:
-test multiple number of agents
+test using tile coding
+code does not run out of the box
+might not be too smart to waste time fixing this now
+
 """
 
 import sys
 sys.path.append("../../")
 from fasterRL.common.experiment import UntilWinExperiment, MultiAgentExperiment
 from math import ceil
+import numpy as np
 
 exp_group = __file__[:-3]
-NUM_SAMPLES = 20
+NUM_SAMPLES = 100
 
 # base DQN
 dqn = {
@@ -65,11 +69,14 @@ dqn_sharing.update(sharing)
 focus = {
     "FOCUSED_SHARING": True,
     "FOCUSED_SHARING_THRESHOLD": 10,    
+	"DISCRETIZE_STATE": True,
+	"DISCRETIZE_BIN_SIZE": 10,
+	"DISCRETIZE_TYPE": 'unitary',
+	"WITH_TILES": True    
 }
 
 dqn_focus_sharing = dqn_sharing.copy()
 dqn_focus_sharing.update(focus)
-
 
 # # others
 # dqn_prio_sharing = dqn_sharing.copy()
@@ -89,14 +96,21 @@ dqn_focus_sharing.update(focus)
 #     'dqn_prio_focus_sharing': dqn_prio_focus_sharing,
 # }
 
-for num_agents in reversed([3,4,5,6,7,8,9,10]):
+tiles = {
+	1: [0]
+	# 5: list(np.arange(-0.10, 0.11, 0.05)),
+	# 10: list(np.arange(-0.10, 0.11, 0.02)),
+	# 20: list(np.arange(-0.10, 0.11, 0.01)),
+	# 40: list(np.arange(-0.20, 0.21, 0.01))
+}
 
-    exp_name = 'dqn_focus_sharing_' + str(num_agents)
+
+for tiles, list_tiles in tiles.items():
+
+    exp_name = 'dqn_focus_sharing_tiles' + str(tiles)
     exp_params = dqn_focus_sharing.copy()
-    exp_params["NUM_AGENTS"] = num_agents
-    exp_params["NUM_TRIALS"] = NUM_SAMPLES
+    exp_params["TILE_OFFSETS"] = list_tiles
 
     print(exp_name, exp_params)
     exp = MultiAgentExperiment(exp_params, exp_name, exp_group)
     exp.run()
-

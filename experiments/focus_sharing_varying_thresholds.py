@@ -9,7 +9,7 @@ from fasterRL.common.experiment import UntilWinExperiment, MultiAgentExperiment
 from math import ceil
 
 exp_group = __file__[:-3]
-NUM_SAMPLES = 20
+NUM_SAMPLES = 100
 
 # base DQN
 dqn = {
@@ -70,7 +70,6 @@ focus = {
 dqn_focus_sharing = dqn_sharing.copy()
 dqn_focus_sharing.update(focus)
 
-
 # # others
 # dqn_prio_sharing = dqn_sharing.copy()
 # dqn_prio_sharing.update(prio)
@@ -89,14 +88,14 @@ dqn_focus_sharing.update(focus)
 #     'dqn_prio_focus_sharing': dqn_prio_focus_sharing,
 # }
 
-for num_agents in reversed([3,4,5,6,7,8,9,10]):
+for threshold in [1,3,5,7,9,11,13,15,17,20,30,50]:
 
-    exp_name = 'dqn_focus_sharing_' + str(num_agents)
+    exp_name = 'dqn_focus_sharing_' + str(threshold)
     exp_params = dqn_focus_sharing.copy()
-    exp_params["NUM_AGENTS"] = num_agents
-    exp_params["NUM_TRIALS"] = NUM_SAMPLES
+    exp_params["FOCUSED_SHARING_THRESHOLD"] = threshold
 
     print(exp_name, exp_params)
-    exp = MultiAgentExperiment(exp_params, exp_name, exp_group)
-    exp.run()
+    exp = MultiAgentExperiment(exp_params,
 
+     exp_name, exp_group)
+    exp.run()
