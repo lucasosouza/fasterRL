@@ -27,7 +27,7 @@ results = []
 methods = ["QLearning", "Sarsa", "FirstVisitMonteCarlo", "EveryVisitMonteCarlo", "NStepsQLearning", "NStepsSarsa"]
 for method in methods:
     params["METHOD"] = method
-    exp = UntilWinExperiment(params)
+    o
     result = exp.run()
     results.append(result)
 

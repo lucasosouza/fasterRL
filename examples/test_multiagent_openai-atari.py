@@ -49,9 +49,3 @@ for idx_a, res in enumerate(result):
 # Episode 1 Mean Reward: -20.000 Mean Steps: 1276.000 Speed: 201.119 sec/ep Frame: 1276
 
 
-# with focused sharing
-# the true test is when they try to share experience
-# will be a bummer if this breaks
-# because one episode is going to take forever
-
-
