@@ -97,13 +97,14 @@ dqn_focus_sharing.update(focus)
 # }
 
 tiles = {
-	1: [0]
-	# 5: list(np.arange(-0.10, 0.11, 0.05)),
-	# 10: list(np.arange(-0.10, 0.11, 0.02)),
-	# 20: list(np.arange(-0.10, 0.11, 0.01)),
-	# 40: list(np.arange(-0.20, 0.21, 0.01))
+	1: [0],
+	5: list(np.arange(-0.10, 0.11, 0.05)),
+	10: list(np.arange(-0.10, 0.11, 0.02)),
+	20: list(np.arange(-0.10, 0.11, 0.01)),
+	40: list(np.arange(-0.20, 0.21, 0.01))
 }
 
+# 1 - is just insurance
 
 for tiles, list_tiles in tiles.items():
 

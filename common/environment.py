@@ -9,8 +9,6 @@ solved_requirements = {
     "CartPole-v0": (195,100),
 }
 
-
-
 class BaseEnv():
     """    
     make a class that overwrites the default environment
@@ -86,9 +84,10 @@ class BaseEnv():
             with_tiles = False
             if "WITH_TILES" in params:
                 with_tiles = params["WITH_TILES"]
-                tile_offsets = None
-                if "TILE_OFFSETS" in params:
-                    tile_offsets = params["TILE_OFFSETS"]
+
+            tile_offsets = None
+            if "TILE_OFFSETS" in params:
+                tile_offsets = params["TILE_OFFSETS"]
 
             # initialize discretizer
             if with_tiles:

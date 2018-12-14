@@ -79,6 +79,12 @@ class DQN(ValueBasedAgent):
         self.focused_sharing = False
         if "FOCUSED_SHARING" in self.params:
             self.focused_sharing = self.params["FOCUSED_SHARING"]
+
+
+        # agent needs to be aware to design occupancy grid with one extra dimension for tiles
+        self.with_tiles = False
+        if "WITH_TILES" in params:
+            self.with_tiles = params["WITH_TILES"]
  
     def set_environment(self, env):
         super(DQN, self).set_environment(env)
@@ -108,7 +114,7 @@ class DQN(ValueBasedAgent):
                 else:
                     self.buffer = ExperienceBufferGrid(self.experience_buffer_size)
             # set the grid
-            self.buffer.set_grid(env.state_discretizer, env.action_space.n)
+            self.buffer.set_grid(env.state_discretizer, env.action_space.n, self.with_tiles)
         else:
             self.buffer = ExperienceBuffer(self.experience_buffer_size)
 

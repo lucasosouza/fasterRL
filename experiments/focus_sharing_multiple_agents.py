@@ -9,7 +9,7 @@ from fasterRL.common.experiment import UntilWinExperiment, MultiAgentExperiment
 from math import ceil
 
 exp_group = __file__[:-3]
-NUM_SAMPLES = 20
+NUM_SAMPLES = 1
 
 # base DQN
 dqn = {
