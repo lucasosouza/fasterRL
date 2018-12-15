@@ -31,7 +31,7 @@ Example:
 
 ```
 import sys
-sys.path.append("../../")
+sys.path.append("../")
 from fasterRL.common.experiment import UntilWinExperiment
 
 params = {
