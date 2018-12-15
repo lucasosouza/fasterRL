@@ -17,7 +17,7 @@ Future plan includes:
 ## Installation
 
 Open `install.sh`, and change the `LOG_DIR` path to where you want to save the experiments data. Run install.sh to create the environment variable `log dir` and the folders structure for logging. 
-(to add: requirements)
+(to add: installation as a library + requirements)
 
 ## Use
 
