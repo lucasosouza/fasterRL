@@ -9,7 +9,7 @@ from fasterRL.common.experiment import UntilWinExperiment, MultiAgentExperiment
 from math import ceil
 
 exp_group = __file__[:-3]
-NUM_SAMPLES = 1
+NUM_SAMPLES = 250
 
 # base DQN
 dqn = {
@@ -89,12 +89,12 @@ dqn_focus_sharing.update(focus)
 #     'dqn_prio_focus_sharing': dqn_prio_focus_sharing,
 # }
 
-for num_agents in reversed([3,4,5,6,7,8,9,10]):
+for num_agents in [1]:
 
     exp_name = 'dqn_focus_sharing_' + str(num_agents)
     exp_params = dqn_focus_sharing.copy()
     exp_params["NUM_AGENTS"] = num_agents
-    exp_params["NUM_TRIALS"] = NUM_SAMPLES
+    exp_params["NUM_TRIALS"] = ceil(NUM_SAMPLES/num_agents)
 
     print(exp_name, exp_params)
     exp = MultiAgentExperiment(exp_params, exp_name, exp_group)
