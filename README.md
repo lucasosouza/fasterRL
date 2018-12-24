@@ -2,66 +2,127 @@
 
 Library for deep reinforcement learning based on pytorch. Under development.
 
-Future plan includes adding tensorflow models as well for completion and comparison. 
+Future plan includes:
 
-# Installation
+- support to tensorflow 
+- support for platforms:
+    - PyBullet
+    - VizDoom
+    - DeepMind Lab
+    - Industrial Benchmark
+- parallelization in multiagents
+- unit and functional tests
+- benchmarks for main algorithms and environments
 
-Run install.sh to create the environment variable log dir and the folders structure for logging. Feel free to change the path to the folder you desire.
+## Installation
 
-To add: requirements
+Open `install.sh`, and change the `LOG_DIR` path to where you want to save the experiments data. Run install.sh to create the environment variable `log dir` and the folders structure for logging. 
+(to add: installation as a library + requirements)
+
+## Use
+
+Requires three steps only:
+
+1. define a dictionary with the hyperparameters of the model.
+2. initialize the experiment class
+3. run.
+
+Example:
+
+```
+import sys
+sys.path.append("../")
+from fasterRL.common.experiment import UntilWinExperiment
+
+params = {
+    "LOG_LEVEL": 2,
+    "PLATFORM": "openai",
+    "ENV_NAME": "FrozenLake-v0",
+    "METHOD": "QLearning",
+    "NUMBER_EPISODES_MEAN": 10,
+    "MEAN_REWARD_BOUND": .8,    
+    "REPORTING_INTERVAL": 100,
+    "NUM_TRIALS": 3,
+    "MAX_EPISODES": 1000,
+    "LEARNING_RATE": 0.3,
+    "GAMMA": 0.99
+}
+
+exp = UntilWinExperiment(params)
+exp.run()
+```
+
+Sample code for each algorithm can be found in the folder `examples`.
+
+## Functionalities
+
+Currently available algorithms:
+
+- Q-Learning
+- Sarsa
+- MonteCarlo
+- Policy Gradients (PG)
+- Cross Entropy (CE)
+- Reinforce
+- Deep Q-Networks (DQN)
+- Double Deep Q-Networks (DDQN)
+- Deep Deterministic Policy Gradient (DDPG)
+- Actor-Critic
+- Advantage Actor-Critic (A2C)
+
+Customization options are available for state-of-the-art methods (not full list):
+
+- Discretization with aggregation (for state and/or action space)
+- Discretization with tile coding (for state and/or action space)
+- N-steps for off-policy methods
+- Importance Sampling
+- Gradient Clipping
+- Priority Replay
+- Multiagents (currently only sequential implementation)
+- Experience Sharing
+- Planned: eligibility traces, boltzman exploration, optimistic starts
+
+Allows different levels of logging:
+
+- Step details or episode details as events (for tensorboard)
+- Experiments results as json 
+- Command line outputs 
+
+Supports platforms:
+
+- OpenAI
+- Malmo/Marlo, based on minecraft
 
 # Repository Map
 
 ## Agents
 
-Each file contains a different class of related agents. Whenever possible use of hierarchy is preferred to avoid code reuse. Current files:
-
-* base_agent: Main interface shared amongst all models. Models can inherit from it and overwrite  
-
-Currently available agents:
-
-*Discrete state space and discrete action space*
-- Q-Learning
-- Sarsa
-- MonteCarlo
-
-*Continuous state space and discrete action space*
-- Deep Q-Networks (DQN)
-
-*Continuous state space and continuous action space*
-- Deep Deterministic Policy Gradient (DDPG)
-
+Each file contains a different class of related algorithms. Whenever possible use of hierarchy is encouraged to avoid code reuse. Modularization, simplicity and self-explainability are preferred over performance.
+ 
 ## Common
 
-Common classes share amongst different agents. Instantiated by the agent instance. 
+Common classes shared amongst different agents.
 
-* Wrappers: environment wrappers. Act as a decorator class to the original environment, adding functionality, such as slight changes to the state to adjust to a model (for example changing the position of the color channel to be used in pytorch)
+**Environment**: abstraction that handles differences between RL platforms.
 
-* Buffers: experience replay buffers. Used in a model to store experiences, that the agent can retrieve later for training.
+**Wrappers**: act as a decorator class to the original environment, modifying its attributes or functions (for example changing the position of the color channel to be used in pytorch). Inspired on OpenAI wrappers.
 
-* Loggers: responsible to collect and report data from the experiments. Loggers can save to file, output to screen or both depending on the logging level defined.
+**Buffers**: experience replay buffers. Used in a model to store experiences, which an agent can retrieve later for training.
 
-* Exploration: exploration strategies
+**Loggers**: responsible to collect and report data from the experiments. Loggers can save details to events file (tensorboard), save results to json or output progress to command line, depending on the log level defined in the experiment parameters.
 
-* Sharing: tools that allow agents in a multiagent setting to share information
+<!--**Exploration**: exploration strategies. currently only $\epsilon$-greedy exploration available.
+-->
+**Networks**: neural network models used for function approximation.
 
-* Networks: neural network models used for function approximation.
+## Others
 
-## Support
+**Examples**: code examples to kick start your project.
 
-Functions and classes not directly related to the model, but which support experimentation. 
+**Experiments**: scripts with detailed experiments for past research projets.
 
-* Utils: general smaller functions reused in the code, not belonging to a specific category
+**Notebooks**: jupyter notebook with analysis of past experiments conducted.
 
-* Experiments: tool to generate and run experiments based on parameters given
-
-## Examples
-
-Contains code examples that can be kick start your project 
-
-## Notebooks
-
-Examples of experiments evaluation. To be removed later
 
 
 

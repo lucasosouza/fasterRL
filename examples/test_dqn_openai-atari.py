@@ -47,16 +47,3 @@ print("Method {} took an average of {:.2f} episodes".format(params["METHOD"], re
 
 # Method DQN took an average of 263.90 episodes
 
-# will be too slow to run atari 
-# want to at least see if it is running - should be able to run more than one episode at least
-# that should suffice for now
-
-# it is running:
-# Episode 1 Mean Reward: -21.000 Mean Steps: 1133.000 Speed: 172.345 sec/ep Frame: 1133
-# Episode 2 Mean Reward: -20.000 Mean Steps: 1313.000 Speed: 234.758 sec/ep Frame: 2446
-# Episode 3 Mean Reward: -21.000 Mean Steps: 1066.000 Speed: 190.153 sec/ep Frame: 3512
-
-# but it does not mean it is learning
-
-# need to adapt focused sharing buffer to handle images as well
-# seems to be working 
