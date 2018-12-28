@@ -1,16 +1,7 @@
 import sys
 sys.path.append("../../")
 
-from fasterRL.common import BaseExperiment, UntilWinExperiment
-
-"""
-    LOG LEVELS:
-    1 - report nothing, just run
-    2 - print to screen
-    3 - log episode-wise variables
-    4 - log step-wise variable
-    5 - log specifics relevant for debugging
-"""
+from fasterRL.common.experiment import BaseExperiment, UntilWinExperiment
 
 params = {
     "PLATFORM": "openai",
@@ -30,8 +21,7 @@ params = {
     "OU_THETA": 0.15,
     "OU_SIGMA": 0.2,
     "OU_EPSILON": 1.0,
-    # "ENTROPY_BONUS": True,
-    # "ENTROPY_BETA": 0.01
+    # "DEVICE": 'cuda'    
 }
 
 # test for mountain car
@@ -45,10 +35,11 @@ params["MEAN_REWARD_BOUND"] = 90
 # BATCH
 exp = UntilWinExperiment(params)
 result = exp.run()
-print("Method {} took an average of {:.2f} episodes".format(params["METHOD"], result))
 
 # LunarLanderContinuous-v2
 # Method DDPG took an average of 456.00 episodes
 
 # MountainCarContinuous-v0
 # Method DDPG took an average of 41.00 episodes
+
+# ddpg can actually take a lot longer than I imagine ....

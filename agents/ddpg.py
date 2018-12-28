@@ -15,6 +15,11 @@ class DDPG(ValueBasedAgent):
     def __init__(self, params):
         super(DDPG, self).__init__(params)
 
+        device = "cpu"
+        if "DEVICE" in params:
+            device = params["DEVICE"]
+        self.device = torch.device(device)                
+
         experience_buffer_size = 1000
         if "EXPERIENCE_BUFFER_SIZE" in params:
             experience_buffer_size = params["EXPERIENCE_BUFFER_SIZE"]
@@ -28,7 +33,7 @@ class DDPG(ValueBasedAgent):
         if "GRADIENT_CLIPPING" in params:
             self.grad_l2_clip = 1
             if "GRAD_L2_CLIP" in params:
-                self.grad_l2_clip  = self.params["GRAD_L2_CLIP"]
+                self.grad_l2_clip  = params["GRAD_L2_CLIP"]
 
         # removed double-qlearning
         # see howit can be added later
@@ -40,18 +45,18 @@ class DDPG(ValueBasedAgent):
             if self.ou_exploration:
                 ou_mu = 0.0
                 if "OU_MU" in params:
-                    ou_mu  = self.params["OU_MU"]
+                    ou_mu  = params["OU_MU"]
                 ou_theta = 0.15
                 if "OU_THETA" in params:
-                    ou_theta  = self.params["OU_THETA"]
+                    ou_theta  = params["OU_THETA"]
                 ou_sigma = 0.2
                 if "OU_SIGMA" in params:
-                    ou_sigma  = self.params["OU_SIGMA"]
+                    ou_sigma  = params["OU_SIGMA"]
                 # epsilon can be used to slowly decay exploration over time
                 # currently not doing decay
                 self.ou_epsilon = 1.0
                 if "OU_EPSILON" in params:
-                    self.ou_epsilon  = self.params["OU_EPSILON"]
+                    self.ou_epsilon  = params["OU_EPSILON"]
 
                 # initialize ounoise class
                 self.ou_noise = OUNoise(ou_mu, ou_theta, ou_sigma)

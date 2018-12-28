@@ -38,11 +38,11 @@ class BaseEnv():
             self.env = wrap_env_atari(self.env)
             self.configure_gym()
         elif self.platform == "malmo":
-            import gym
-            import gym.spaces            
-            import gym_minecraft
-            self.env = gym.make(params["ENV_NAME"])
-            self.configure_gym_minecraft()
+            self.env = self.configure_gym_minecraft(params["ENV_NAME"])
+            self.env = wrap_env_malmo(self.env)
+            self.configure_gym()
+        elif self.platform == "marlo":
+            self.env = self.configure_gym_marlo(params["ENV_NAME"])
             self.env = wrap_env_malmo(self.env)
             self.configure_gym()
 
@@ -194,12 +194,47 @@ class BaseEnv():
         # think later about adding random seed, pros vs cons
         # self.env.seed(random_seed)
 
-    def configure_gym_minecraft(self):
+    def configure_gym_marlo(self, env_name):
+        """ Configure environment for Marlo platform 
+            Require previously launched minecraft environment
+            - to launch: $MALMO_MINECRAFT_ROOT/launchClient.sh -p 10000
 
-        self.env.configure(client_pool=[('127.0.0.1', 10000), ('127.0.0.1', 10001)])
-        self.env.configure(allowDiscreteMovement=["move", "turn"]) # , log_level="INFO")
-        self.env.configure(videoResolution=[84,84])
-        self.env.seed(42)
+            Available params defined in:
+            - https://github.com/crowdAI/marLo/blob/8652f8daef2caf9202881d002a2d3c28c882d941/marlo/base_env_builder.py
+        """ 
+
+        import marlo
+        marlo.logger.setLevel('ERROR')
+
+        # client_pool = [('127.0.0.1', 10000), ('127.0.0.1', 10001)]
+        client_pool = [('127.0.0.1', 10000), ('127.0.0.1', 10001)]
+        join_tokens = marlo.make(env_name,
+                                 params={
+                                    "client_pool": client_pool,
+                                    "videoResolution" : [84,84],
+                                    "tick_length": 1, 
+                                    # "prioritise_offscreen_rendering": False,
+                                    # "comp_all_commands": ['move', "turn"],
+                                 })
+        join_token = join_tokens[0]
+        env = marlo.init(join_token)
+
+        return env
+
+    def configure_gym_minecraft(self, env_name):
+        """ Configure environment for gym minecraft platform """ 
+
+        import gym
+        import gym.spaces            
+        import gym_minecraft
+
+        env = gym.make(env_name)
+        env.configure(client_pool=[('127.0.0.1', 10000), ('127.0.0.1', 10001)])
+        env.configure(allowDiscreteMovement=["move", "turn"]) # , log_level="INFO")
+        env.configure(videoResolution=[84,84])
+        env.seed(42)
+
+        return env
 
     def reset(self):
         observation = self.env.reset()

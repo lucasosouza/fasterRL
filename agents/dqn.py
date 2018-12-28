@@ -100,19 +100,10 @@ class DQN(ValueBasedAgent):
         if self.prioritized_replay and not self.focused_sharing:
             self.buffer = PrioReplayBuffer(self.experience_buffer_size, self.prio_replay_alpha)
         elif self.focused_sharing:
-            # if it has variables in more than one dimension (image), special buffer            
-            if len(env.observation_space.shape) > 1:
-                # image
-                if self.prioritized_replay:
-                    self.buffer = PrioExperienceBufferGridImage(self.experience_buffer_size, self.prio_replay_alpha)
-                else:
-                    self.buffer = ExperienceBufferGridImage(self.experience_buffer_size)
+            if self.prioritized_replay:
+                self.buffer = PrioExperienceBufferGrid(self.experience_buffer_size, self.prio_replay_alpha)
             else:
-                # no image
-                if self.prioritized_replay:
-                    self.buffer = PrioExperienceBufferGrid(self.experience_buffer_size, self.prio_replay_alpha)
-                else:
-                    self.buffer = ExperienceBufferGrid(self.experience_buffer_size)
+                self.buffer = ExperienceBufferGrid(self.experience_buffer_size)
             # set the grid
             self.buffer.set_grid(env.state_discretizer, env.action_space.n, self.with_tiles)
         else:
@@ -257,7 +248,8 @@ class DQN(ValueBasedAgent):
         # creates tensors. and push them to device, if GPU is available, then uses GPU
         states_v = torch.FloatTensor(states).to(self.device)
         next_states_v = torch.FloatTensor(next_states).to(self.device)
-        rewards_v = torch.tensor(rewards).to(self.device)
+        # force float if reward is int
+        rewards_v = torch.FloatTensor(rewards).to(self.device)
         actions_v = torch.tensor(actions).to(self.device)
         done_mask = torch.ByteTensor(dones).to(self.device)
 
@@ -272,7 +264,7 @@ class DQN(ValueBasedAgent):
         # calculate state-action values
         # gather: select only the values for the actions taken
         # result of gather applied to tensor is differentiable operation, keep all gradients w.r.t to final loss value
-        state_action_values = self.net(states_v).gather(1, actions_v.unsqueeze(-1)).squeeze(-1)
+        state_action_values = self.net(states_v).gather(1, actions_v.unsqueeze(-1)).squeeze(-1) #.to(self.device)
                         
         # apply target network to next_states. get maximum q-value. no need to know the action, just the value
         # if double, get actions from regular network and value from target network
@@ -284,7 +276,7 @@ class DQN(ValueBasedAgent):
             _, next_state_action_v = torch.max(next_q_vals_v, dim=1)
             # gets actions from 
             next_state_values = \
-                self.tgt_net(next_states_v).gather(1, next_state_action_v.unsqueeze(-1)).squeeze(-1)
+                self.tgt_net(next_states_v).gather(1, next_state_action_v.unsqueeze(-1)).squeeze(-1) #.to(self.device)
         else:
             next_state_values = self.tgt_net(next_states_v).max(1)[0]
  
@@ -295,7 +287,7 @@ class DQN(ValueBasedAgent):
         next_state_values = next_state_values.detach()
         
         # calculate total value (Bellman approximation value)
-        expected_state_action_values = next_state_values * self.gamma + rewards_v
+        expected_state_action_values = (next_state_values * self.gamma + rewards_v).to(self.device)
         
         # calculate mean squared error loss
         loss = nn.MSELoss()(state_action_values, expected_state_action_values)

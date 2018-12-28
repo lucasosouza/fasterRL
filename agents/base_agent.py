@@ -4,8 +4,7 @@ class BaseAgent():
 
     def __init__(self, params):
 
-        # which functions and variables need to be initialized in the base agent?
-        self.params = params
+        # self.params = params
 
         # configuration parameters
         if "PLATFORM" in params:

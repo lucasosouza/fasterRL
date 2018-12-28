@@ -1,7 +1,6 @@
 import numpy as np
 from collections import namedtuple, deque
 from functools import reduce
-from skimage.measure import block_reduce
 
 # need to better organize this log of experience, transition, etc
 

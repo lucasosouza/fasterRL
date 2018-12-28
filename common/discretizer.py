@@ -1,5 +1,6 @@
 import numpy as np
 from itertools import product
+from skimage.measure import block_reduce
 
 class Discretizer():
     # discretizer should not access the environment - leave the agent or buffer do the sampling
@@ -7,19 +8,43 @@ class Discretizer():
     def __init__(self, space, bin_size=None, bin_sizes=None):
 
         self.space = space
-        self.n_vars = space.shape[0]
+        
+        # check if it is image
+        self.image = False
+        if len(self.space.shape) > 2:
+            self.image=True
 
-        # get low, high and total interval for each variable
-        self.lower_bounds = space.low
-        self.upper_bounds = space.high
+        # if not, regular handling of bounds
+        if not self.image:
 
-        # manually handle infinite environments temporarily
-        # only for CartPole, but need a better way to define as boundaries (as done in sampling)
-        self.lower_bounds[self.lower_bounds<-10] = -10.
-        self.upper_bounds[self.upper_bounds>10] = 10.
+            self.n_vars = space.shape[0]
 
-        # set up bin sizes with default size if not given
-        self.bin_size = bin_size or 10
+            # get low, high and total interval for each variable
+            self.lower_bounds = space.low
+            self.upper_bounds = space.high
+
+            # manually handle infinite environments temporarily
+            # only for CartPole, but need a better way to define as boundaries (as done in sampling)
+            self.lower_bounds[self.lower_bounds<-10] = -10.
+            self.upper_bounds[self.upper_bounds>10] = 10.
+
+            # set up bin sizes with default size if not given
+            self.bin_size = bin_size or 10
+
+        # if image, requires a reduce block, bounds set to [0,1] and reduced bin size
+        else: 
+
+            self.n_vars = 9 # manually set for now, calculate later
+            self.reduce_block  = (4,28,28) # converts (4,84,84) to (1,3,3)
+
+            # manually set the bounds to [0,1]
+            self.lower_bounds = [0] * self.n_vars
+            self.upper_bounds = [1] * self.n_vars
+
+            # set up bin sizes with default size if not given
+            self.bin_size = bin_size or 5
+
+
         self.bin_sizes = bin_sizes or [self.bin_size for var in range(self.n_vars)]
 
         # calculate state bins
@@ -30,6 +55,11 @@ class Discretizer():
             self.bins.append(bins[1:-1])
 
     def convert(self, sample):
+
+        # if image, needs to pass through reduce block first
+        if self.image:
+            sample = block_reduce(sample, self.reduce_block, func=np.mean).ravel()
+
 
         discrete_sample = [int(np.digitize(s, b)) for s,b in zip(sample, self.bins)]
         return tuple(discrete_sample)
@@ -161,5 +191,24 @@ class ActionDiscretizer(Discretizer):
 
 
 
+# class ImageDiscretizer(Discretizer):
+#     # discretizer should not access the environment - leave the agent or buffer do the sampling
+
+#     def __init__(self, space, bin_size=None, bin_sizes=None):
+
+#         # calculate state bins
+#         self.bins = []
+#         for v in range(self.n_vars):
+#             low, high = self.lower_bounds[v], self.upper_bounds[v]
+#             bins = np.histogram_bin_edges([low, high], bins=self.bin_sizes[v])
+#             self.bins.append(bins[1:-1])
+
+#     def convert(self, sample):
+
+#         # every time a state comes in, I have to pass through the reduce block
+
+#         # discretization is the same after reduce block
+#         discrete_sample = [int(np.digitize(s, b)) for s,b in zip(sample, self.bins)]
+#         return tuple(discrete_sample)
 
 
