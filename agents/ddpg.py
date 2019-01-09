@@ -91,14 +91,14 @@ class DDPG(ValueBasedAgent):
 
         # initialize networks
         self.net_actor = DDPGActor(env.observation_space.shape, env.action_space, 
-            device=self.device, random_seed=self.random_seed)
+            device=self.device, random_seed=self.random_seed).to(self.device)
         self.tgtnet_actor = DDPGActor(env.observation_space.shape, env.action_space, 
-            device=self.device, random_seed=self.random_seed)
+            device=self.device, random_seed=self.random_seed).to(self.device)
 
         self.net_critic = DDPGCritic(env.observation_space.shape, env.action_space.shape, 
-            device=self.device, random_seed=self.random_seed)
+            device=self.device, random_seed=self.random_seed).to(self.device)
         self.tgtnet_critic = DDPGCritic(env.observation_space.shape, env.action_space.shape, 
-            device=self.device, random_seed=self.random_seed)
+            device=self.device, random_seed=self.random_seed).to(self.device)
 
         self.actor_optimizer = optim.Adam(self.net_actor.parameters(), lr=self.learning_rate)
         self.critic_optimizer = optim.Adam(self.net_critic.parameters(), lr=self.learning_rate)
@@ -117,7 +117,7 @@ class DDPG(ValueBasedAgent):
     def select_action(self):
 
         # get deterministic action values
-        states_v = torch.FloatTensor([self.state])         
+        states_v = torch.FloatTensor([self.state]).to(self.device)
         action_values = self.net_actor(states_v).data.cpu().numpy()[0]
 
         #  add the noise

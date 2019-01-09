@@ -36,7 +36,7 @@ class DQN(ValueBasedAgent):
         if "GRADIENT_CLIPPING" in params:
             self.grad_l2_clip = 1
             if "GRAD_L2_CLIP" in params:
-                self.grad_l2_clip  = self.params["GRAD_L2_CLIP"]
+                self.grad_l2_clip  = params["GRAD_L2_CLIP"]
 
         # double q learning
         self.double_qlearning = False
@@ -77,8 +77,8 @@ class DQN(ValueBasedAgent):
 
         # add focused sharing
         self.focused_sharing = False
-        if "FOCUSED_SHARING" in self.params:
-            self.focused_sharing = self.params["FOCUSED_SHARING"]
+        if "FOCUSED_SHARING" in params:
+            self.focused_sharing = params["FOCUSED_SHARING"]
 
 
         # agent needs to be aware to design occupancy grid with one extra dimension for tiles

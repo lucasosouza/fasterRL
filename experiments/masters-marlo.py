@@ -4,7 +4,7 @@ sys.path.append("../../")
 from fasterRL.common.experiment import UntilWinExperiment, MultiAgentExperiment
 
 exp_group = __file__[:-3]
-NUM_SAMPLES = 20
+NUM_SAMPLES = 30
 
 # base DQN
 dqn = {
@@ -78,11 +78,11 @@ dqn_prio_focus_sharing.update(focus)
 exp_group = exp_group
 experiments = {
     'dqn': dqn,
-#     'dqn_prio': dqn_prio,
-#    'dqn_sharing': dqn_sharing,
-#    'dqn_prio_sharing': dqn_prio_sharing,
-#    'dqn_focus_sharing': dqn_focus_sharing,
-#     'dqn_prio_focus_sharing': dqn_prio_focus_sharing,
+    'dqn_prio': dqn_prio,
+	'dqn_sharing': dqn_sharing,
+	'dqn_prio_sharing': dqn_prio_sharing,
+	'dqn_focus_sharing': dqn_focus_sharing,
+    'dqn_prio_focus_sharing': dqn_prio_focus_sharing,
 }
 
 for exp_name, params in reversed(list(experiments.items())):
