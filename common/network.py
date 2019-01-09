@@ -126,9 +126,9 @@ class ContinuousPolicyNetwork(Network):
         action_lower_bounds = action_space.low
         action_upper_bounds = action_space.high
 
-        self.action_lower_bounds = torch.FloatTensor(action_lower_bounds)
+        self.action_lower_bounds = torch.FloatTensor(action_lower_bounds).to(device)
         action_range = action_upper_bounds - action_lower_bounds
-        self.action_mult_factor = torch.FloatTensor(action_range / 2.) # divided by range of tanh 
+        self.action_mult_factor = torch.FloatTensor(action_range / 2.).to(device) # divided by range of tanh 
 
     def adjust_output_range(self, x): 
         """ Adjust output to the action range expected in the environment

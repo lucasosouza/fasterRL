@@ -7,7 +7,7 @@ params = {
     "PLATFORM": "openai",
     "METHOD": "DDPG",
     "LOGGER_METHOD": "WinLogger",
-    "REPORTING_INTERVAL": 10,
+    "REPORTING_INTERVAL": 1,
     "LOG_LEVEL": 2,
     "NUMBER_EPISODES_MEAN": 10,
     "NUM_TRIALS": 3,
@@ -21,7 +21,7 @@ params = {
     "OU_THETA": 0.15,
     "OU_SIGMA": 0.2,
     "OU_EPSILON": 1.0,
-    # "DEVICE": 'cuda'    
+    "DEVICE": 'cuda'    
 }
 
 # test for mountain car
@@ -42,4 +42,5 @@ result = exp.run()
 # MountainCarContinuous-v0
 # Method DDPG took an average of 41.00 episodes
 
-# ddpg can actually take a lot longer than I imagine ....
+# consider decaying OU epsilon - see literature for state of art results on it
+# ddpg taking a lot longer than I would imagine from intiial tests
