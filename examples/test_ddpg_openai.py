@@ -10,7 +10,7 @@ params = {
     "REPORTING_INTERVAL": 10,
     "LOG_LEVEL": 2,
     "NUMBER_EPISODES_MEAN": 10,
-    "NUM_TRIALS": 1,
+    "NUM_TRIALS": 3,
     "MAX_EPISODES": 2000,
     "LEARNING_RATE": 2e-4,
     "GAMMA": 0.99,

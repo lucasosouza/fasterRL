@@ -36,17 +36,20 @@ class BaseExperiment:
 
         # dumps json with experiment hyperparameters
         if experiment_group:
+            # if there is a group, save it in a folder with the groups name
             os.makedirs(os.path.join(log_root, "logs", experiment_group), exist_ok=True)
             params_log_path = os.path.join(log_root, "logs", experiment_group, experiment_id + ".json")
+            self.log_dir = os.path.join(log_root, "runs", experiment_group, experiment_id)
         else:
             params_log_path = os.path.join(log_root, "logs", experiment_id + ".json")
+            self.log_dir = os.path.join(log_root, "runs", experiment_id)
 
         with open(params_log_path, "w") as f:
             json.dump(params, f)
 
         # log paths, tensorboard agents specifics and trial overall json
         # don't use groups for runs yet until the impact on tensorboard is clear
-        self.log_dir = os.path.join(log_root, "runs", experiment_id)
+        # self.log_dir = os.path.join(log_root, "runs", experiment_id)
 
         # set path for local results
         if experiment_group:
