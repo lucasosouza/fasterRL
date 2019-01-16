@@ -1,0 +1,992 @@
+
+% Default to the notebook output style
+
+    
+
+
+% Inherit from the specified cell style.
+
+
+
+
+    
+\documentclass[11pt]{article}
+
+    
+    
+    \usepackage[T1]{fontenc}
+    % Nicer default font (+ math font) than Computer Modern for most use cases
+    \usepackage{mathpazo}
+
+    % Basic figure setup, for now with no caption control since it's done
+    % automatically by Pandoc (which extracts ![](path) syntax from Markdown).
+    \usepackage{graphicx}
+    % We will generate all images so they have a width \maxwidth. This means
+    % that they will get their normal width if they fit onto the page, but
+    % are scaled down if they would overflow the margins.
+    \makeatletter
+    \def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth
+    \else\Gin@nat@width\fi}
+    \makeatother
+    \let\Oldincludegraphics\includegraphics
+    % Set max figure width to be 80% of text width, for now hardcoded.
+    \renewcommand{\includegraphics}[1]{\Oldincludegraphics[width=.8\maxwidth]{#1}}
+    % Ensure that by default, figures have no caption (until we provide a
+    % proper Figure object with a Caption API and a way to capture that
+    % in the conversion process - todo).
+    \usepackage{caption}
+    \DeclareCaptionLabelFormat{nolabel}{}
+    \captionsetup{labelformat=nolabel}
+
+    \usepackage{adjustbox} % Used to constrain images to a maximum size 
+    \usepackage{xcolor} % Allow colors to be defined
+    \usepackage{enumerate} % Needed for markdown enumerations to work
+    \usepackage{geometry} % Used to adjust the document margins
+    \usepackage{amsmath} % Equations
+    \usepackage{amssymb} % Equations
+    \usepackage{textcomp} % defines textquotesingle
+    % Hack from http://tex.stackexchange.com/a/47451/13684:
+    \AtBeginDocument{%
+        \def\PYZsq{\textquotesingle}% Upright quotes in Pygmentized code
+    }
+    \usepackage{upquote} % Upright quotes for verbatim code
+    \usepackage{eurosym} % defines \euro
+    \usepackage[mathletters]{ucs} % Extended unicode (utf-8) support
+    \usepackage[utf8x]{inputenc} % Allow utf-8 characters in the tex document
+    \usepackage{fancyvrb} % verbatim replacement that allows latex
+    \usepackage{grffile} % extends the file name processing of package graphics 
+                         % to support a larger range 
+    % The hyperref package gives us a pdf with properly built
+    % internal navigation ('pdf bookmarks' for the table of contents,
+    % internal cross-reference links, web links for URLs, etc.)
+    \usepackage{hyperref}
+    \usepackage{longtable} % longtable support required by pandoc >1.10
+    \usepackage{booktabs}  % table support for pandoc > 1.12.2
+    \usepackage[inline]{enumitem} % IRkernel/repr support (it uses the enumerate* environment)
+    \usepackage[normalem]{ulem} % ulem is needed to support strikethroughs (\sout)
+                                % normalem makes italics be italics, not underlines
+    
+
+    
+    
+    % Colors for the hyperref package
+    \definecolor{urlcolor}{rgb}{0,.145,.698}
+    \definecolor{linkcolor}{rgb}{.71,0.21,0.01}
+    \definecolor{citecolor}{rgb}{.12,.54,.11}
+
+    % ANSI colors
+    \definecolor{ansi-black}{HTML}{3E424D}
+    \definecolor{ansi-black-intense}{HTML}{282C36}
+    \definecolor{ansi-red}{HTML}{E75C58}
+    \definecolor{ansi-red-intense}{HTML}{B22B31}
+    \definecolor{ansi-green}{HTML}{00A250}
+    \definecolor{ansi-green-intense}{HTML}{007427}
+    \definecolor{ansi-yellow}{HTML}{DDB62B}
+    \definecolor{ansi-yellow-intense}{HTML}{B27D12}
+    \definecolor{ansi-blue}{HTML}{208FFB}
+    \definecolor{ansi-blue-intense}{HTML}{0065CA}
+    \definecolor{ansi-magenta}{HTML}{D160C4}
+    \definecolor{ansi-magenta-intense}{HTML}{A03196}
+    \definecolor{ansi-cyan}{HTML}{60C6C8}
+    \definecolor{ansi-cyan-intense}{HTML}{258F8F}
+    \definecolor{ansi-white}{HTML}{C5C1B4}
+    \definecolor{ansi-white-intense}{HTML}{A1A6B2}
+
+    % commands and environments needed by pandoc snippets
+    % extracted from the output of `pandoc -s`
+    \providecommand{\tightlist}{%
+      \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+    \DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+    % Add ',fontsize=\small' for more characters per line
+    \newenvironment{Shaded}{}{}
+    \newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{{#1}}}}
+    \newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.56,0.13,0.00}{{#1}}}
+    \newcommand{\DecValTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{{#1}}}
+    \newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{{#1}}}
+    \newcommand{\FloatTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{{#1}}}
+    \newcommand{\CharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{{#1}}}
+    \newcommand{\StringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{{#1}}}
+    \newcommand{\CommentTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textit{{#1}}}}
+    \newcommand{\OtherTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{{#1}}}
+    \newcommand{\AlertTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{{#1}}}}
+    \newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.02,0.16,0.49}{{#1}}}
+    \newcommand{\RegionMarkerTok}[1]{{#1}}
+    \newcommand{\ErrorTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{{#1}}}}
+    \newcommand{\NormalTok}[1]{{#1}}
+    
+    % Additional commands for more recent versions of Pandoc
+    \newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.53,0.00,0.00}{{#1}}}
+    \newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{{#1}}}
+    \newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{{#1}}}
+    \newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.73,0.40,0.53}{{#1}}}
+    \newcommand{\ImportTok}[1]{{#1}}
+    \newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.73,0.13,0.13}{\textit{{#1}}}}
+    \newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{{#1}}}}}
+    \newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{{#1}}}}}
+    \newcommand{\VariableTok}[1]{\textcolor[rgb]{0.10,0.09,0.49}{{#1}}}
+    \newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{{#1}}}}
+    \newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.40,0.40,0.40}{{#1}}}
+    \newcommand{\BuiltInTok}[1]{{#1}}
+    \newcommand{\ExtensionTok}[1]{{#1}}
+    \newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.74,0.48,0.00}{{#1}}}
+    \newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.49,0.56,0.16}{{#1}}}
+    \newcommand{\InformationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{{#1}}}}}
+    \newcommand{\WarningTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{{#1}}}}}
+    
+    
+    % Define a nice break command that doesn't care if a line doesn't already
+    % exist.
+    \def\br{\hspace*{\fill} \\* }
+    % Math Jax compatability definitions
+    \def\gt{>}
+    \def\lt{<}
+    % Document parameters
+    \title{Masters-CartPoleRewards-v3}
+    
+    
+    
+
+    % Pygments definitions
+    
+\makeatletter
+\def\PY@reset{\let\PY@it=\relax \let\PY@bf=\relax%
+    \let\PY@ul=\relax \let\PY@tc=\relax%
+    \let\PY@bc=\relax \let\PY@ff=\relax}
+\def\PY@tok#1{\csname PY@tok@#1\endcsname}
+\def\PY@toks#1+{\ifx\relax#1\empty\else%
+    \PY@tok{#1}\expandafter\PY@toks\fi}
+\def\PY@do#1{\PY@bc{\PY@tc{\PY@ul{%
+    \PY@it{\PY@bf{\PY@ff{#1}}}}}}}
+\def\PY#1#2{\PY@reset\PY@toks#1+\relax+\PY@do{#2}}
+
+\expandafter\def\csname PY@tok@w\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.73,0.73,0.73}{##1}}}
+\expandafter\def\csname PY@tok@c\endcsname{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.25,0.50,0.50}{##1}}}
+\expandafter\def\csname PY@tok@cp\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.74,0.48,0.00}{##1}}}
+\expandafter\def\csname PY@tok@k\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\expandafter\def\csname PY@tok@kp\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\expandafter\def\csname PY@tok@kt\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.69,0.00,0.25}{##1}}}
+\expandafter\def\csname PY@tok@o\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\expandafter\def\csname PY@tok@ow\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.67,0.13,1.00}{##1}}}
+\expandafter\def\csname PY@tok@nb\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\expandafter\def\csname PY@tok@nf\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.00,0.00,1.00}{##1}}}
+\expandafter\def\csname PY@tok@nc\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.00,1.00}{##1}}}
+\expandafter\def\csname PY@tok@nn\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.00,1.00}{##1}}}
+\expandafter\def\csname PY@tok@ne\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.82,0.25,0.23}{##1}}}
+\expandafter\def\csname PY@tok@nv\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+\expandafter\def\csname PY@tok@no\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.53,0.00,0.00}{##1}}}
+\expandafter\def\csname PY@tok@nl\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.63,0.63,0.00}{##1}}}
+\expandafter\def\csname PY@tok@ni\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.60,0.60,0.60}{##1}}}
+\expandafter\def\csname PY@tok@na\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.49,0.56,0.16}{##1}}}
+\expandafter\def\csname PY@tok@nt\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\expandafter\def\csname PY@tok@nd\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.67,0.13,1.00}{##1}}}
+\expandafter\def\csname PY@tok@s\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\expandafter\def\csname PY@tok@sd\endcsname{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\expandafter\def\csname PY@tok@si\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.73,0.40,0.53}{##1}}}
+\expandafter\def\csname PY@tok@se\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.73,0.40,0.13}{##1}}}
+\expandafter\def\csname PY@tok@sr\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.73,0.40,0.53}{##1}}}
+\expandafter\def\csname PY@tok@ss\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+\expandafter\def\csname PY@tok@sx\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\expandafter\def\csname PY@tok@m\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\expandafter\def\csname PY@tok@gh\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.00,0.50}{##1}}}
+\expandafter\def\csname PY@tok@gu\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.50,0.00,0.50}{##1}}}
+\expandafter\def\csname PY@tok@gd\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.63,0.00,0.00}{##1}}}
+\expandafter\def\csname PY@tok@gi\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.00,0.63,0.00}{##1}}}
+\expandafter\def\csname PY@tok@gr\endcsname{\def\PY@tc##1{\textcolor[rgb]{1.00,0.00,0.00}{##1}}}
+\expandafter\def\csname PY@tok@ge\endcsname{\let\PY@it=\textit}
+\expandafter\def\csname PY@tok@gs\endcsname{\let\PY@bf=\textbf}
+\expandafter\def\csname PY@tok@gp\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.00,0.50}{##1}}}
+\expandafter\def\csname PY@tok@go\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.53,0.53,0.53}{##1}}}
+\expandafter\def\csname PY@tok@gt\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.00,0.27,0.87}{##1}}}
+\expandafter\def\csname PY@tok@err\endcsname{\def\PY@bc##1{\setlength{\fboxsep}{0pt}\fcolorbox[rgb]{1.00,0.00,0.00}{1,1,1}{\strut ##1}}}
+\expandafter\def\csname PY@tok@kc\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\expandafter\def\csname PY@tok@kd\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\expandafter\def\csname PY@tok@kn\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\expandafter\def\csname PY@tok@kr\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\expandafter\def\csname PY@tok@bp\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\expandafter\def\csname PY@tok@fm\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.00,0.00,1.00}{##1}}}
+\expandafter\def\csname PY@tok@vc\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+\expandafter\def\csname PY@tok@vg\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+\expandafter\def\csname PY@tok@vi\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+\expandafter\def\csname PY@tok@vm\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+\expandafter\def\csname PY@tok@sa\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\expandafter\def\csname PY@tok@sb\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\expandafter\def\csname PY@tok@sc\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\expandafter\def\csname PY@tok@dl\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\expandafter\def\csname PY@tok@s2\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\expandafter\def\csname PY@tok@sh\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\expandafter\def\csname PY@tok@s1\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\expandafter\def\csname PY@tok@mb\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\expandafter\def\csname PY@tok@mf\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\expandafter\def\csname PY@tok@mh\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\expandafter\def\csname PY@tok@mi\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\expandafter\def\csname PY@tok@il\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\expandafter\def\csname PY@tok@mo\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\expandafter\def\csname PY@tok@ch\endcsname{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.25,0.50,0.50}{##1}}}
+\expandafter\def\csname PY@tok@cm\endcsname{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.25,0.50,0.50}{##1}}}
+\expandafter\def\csname PY@tok@cpf\endcsname{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.25,0.50,0.50}{##1}}}
+\expandafter\def\csname PY@tok@c1\endcsname{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.25,0.50,0.50}{##1}}}
+\expandafter\def\csname PY@tok@cs\endcsname{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.25,0.50,0.50}{##1}}}
+
+\def\PYZbs{\char`\\}
+\def\PYZus{\char`\_}
+\def\PYZob{\char`\{}
+\def\PYZcb{\char`\}}
+\def\PYZca{\char`\^}
+\def\PYZam{\char`\&}
+\def\PYZlt{\char`\<}
+\def\PYZgt{\char`\>}
+\def\PYZsh{\char`\#}
+\def\PYZpc{\char`\%}
+\def\PYZdl{\char`\$}
+\def\PYZhy{\char`\-}
+\def\PYZsq{\char`\'}
+\def\PYZdq{\char`\"}
+\def\PYZti{\char`\~}
+% for compatibility with earlier versions
+\def\PYZat{@}
+\def\PYZlb{[}
+\def\PYZrb{]}
+\makeatother
+
+
+    % Exact colors from NB
+    \definecolor{incolor}{rgb}{0.0, 0.0, 0.5}
+    \definecolor{outcolor}{rgb}{0.545, 0.0, 0.0}
+
+
+
+    
+    % Prevent overflowing lines due to hard-to-break entities
+    \sloppy 
+    % Setup hyperref package
+    \hypersetup{
+      breaklinks=true,  % so long urls are correctly broken across lines
+      colorlinks=true,
+      urlcolor=urlcolor,
+      linkcolor=linkcolor,
+      citecolor=citecolor,
+      }
+    % Slightly bigger margins than the latex defaults
+    
+    \geometry{verbose,tmargin=1in,bmargin=1in,lmargin=1in,rmargin=1in}
+    
+    
+
+    \begin{document}
+    
+    
+    \maketitle
+    
+    
+
+    
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}9}]:} \PY{k+kn}{import} \PY{n+nn}{os}
+        \PY{k+kn}{import} \PY{n+nn}{numpy} \PY{k}{as} \PY{n+nn}{np}
+        \PY{k+kn}{from} \PY{n+nn}{collections} \PY{k}{import} \PY{n}{defaultdict}
+        \PY{k+kn}{import} \PY{n+nn}{pandas} \PY{k}{as} \PY{n+nn}{pd}
+        \PY{k+kn}{import} \PY{n+nn}{matplotlib}\PY{n+nn}{.}\PY{n+nn}{pyplot} \PY{k}{as} \PY{n+nn}{plt}
+        \PY{k+kn}{import} \PY{n+nn}{json}
+        \PY{o}{\PYZpc{}}\PY{k}{matplotlib} inline
+        
+        \PY{k+kn}{from} \PY{n+nn}{tensorboard}\PY{n+nn}{.}\PY{n+nn}{backend}\PY{n+nn}{.}\PY{n+nn}{event\PYZus{}processing} \PY{k}{import} \PY{n}{event\PYZus{}accumulator}
+        \PY{k+kn}{from} \PY{n+nn}{collections} \PY{k}{import} \PY{n}{defaultdict}
+        \PY{k+kn}{import} \PY{n+nn}{seaborn} \PY{k}{as} \PY{n+nn}{sns}
+\end{Verbatim}
+
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}10}]:} \PY{n}{experiments} \PY{o}{=} \PY{p}{\PYZob{}}
+          \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{dqn\PYZus{}sharing}\PY{l+s+s1}{\PYZsq{}}\PY{p}{:} \PY{p}{[}\PY{p}{]}\PY{p}{,}
+          \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{dqn\PYZus{}prio\PYZus{}sharing}\PY{l+s+s1}{\PYZsq{}}\PY{p}{:} \PY{p}{[}\PY{p}{]}\PY{p}{,}
+          \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{dqn\PYZus{}prio\PYZus{}focus\PYZus{}sharing}\PY{l+s+s1}{\PYZsq{}}\PY{p}{:} \PY{p}{[}\PY{p}{]}\PY{p}{,}
+          \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{dqn\PYZus{}focus\PYZus{}sharing}\PY{l+s+s1}{\PYZsq{}}\PY{p}{:} \PY{p}{[}\PY{p}{]}\PY{p}{,}
+          \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{dqn}\PY{l+s+s1}{\PYZsq{}}\PY{p}{:} \PY{p}{[}\PY{p}{]}\PY{p}{,}
+          \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{dqn\PYZus{}prio}\PY{l+s+s1}{\PYZsq{}}\PY{p}{:} \PY{p}{[}\PY{p}{]}
+         \PY{p}{\PYZcb{}}
+         
+         \PY{c+c1}{\PYZsh{} list experiments}
+         \PY{n}{root} \PY{o}{=} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{/mnt/storage/log\PYZhy{}experiments/runs/masters\PYZhy{}detailed\PYZhy{}3/}\PY{l+s+s2}{\PYZdq{}}
+         \PY{k}{for} \PY{n}{folder}\PY{p}{,} \PY{n}{files} \PY{o+ow}{in} \PY{n}{experiments}\PY{o}{.}\PY{n}{items}\PY{p}{(}\PY{p}{)}\PY{p}{:}
+             \PY{n}{path} \PY{o}{=} \PY{n}{os}\PY{o}{.}\PY{n}{path}\PY{o}{.}\PY{n}{join}\PY{p}{(}\PY{n}{root}\PY{p}{,} \PY{n}{folder}\PY{p}{)}
+             \PY{k}{if} \PY{n}{folder} \PY{o}{==} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{dqn}\PY{l+s+s1}{\PYZsq{}} \PY{o+ow}{or} \PY{n}{folder} \PY{o}{==} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{dqn\PYZus{}prio}\PY{l+s+s1}{\PYZsq{}}\PY{p}{:}
+                 \PY{k}{for} \PY{n}{i} \PY{o+ow}{in} \PY{n+nb}{range}\PY{p}{(}\PY{l+m+mi}{40}\PY{p}{)}\PY{p}{:}
+                     \PY{n}{trial\PYZus{}name} \PY{o}{=} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{agent\PYZhy{}trial}\PY{l+s+s1}{\PYZsq{}} \PY{o}{+} \PY{n+nb}{str}\PY{p}{(}\PY{n}{i}\PY{p}{)}
+                     \PY{n}{trial\PYZus{}path} \PY{o}{=} \PY{n}{os}\PY{o}{.}\PY{n}{path}\PY{o}{.}\PY{n}{join}\PY{p}{(}\PY{n}{path}\PY{p}{,} \PY{n}{trial\PYZus{}name}\PY{p}{)}
+                     \PY{c+c1}{\PYZsh{} get the last file and append to files}
+                     \PY{n}{res} \PY{o}{=} \PY{n+nb}{list}\PY{p}{(}\PY{n+nb}{sorted}\PY{p}{(}\PY{n}{os}\PY{o}{.}\PY{n}{listdir}\PY{p}{(}\PY{n}{trial\PYZus{}path}\PY{p}{)}\PY{p}{)}\PY{p}{)}\PY{p}{[}\PY{o}{\PYZhy{}}\PY{l+m+mi}{1}\PY{p}{]}
+                     \PY{n}{files}\PY{o}{.}\PY{n}{append}\PY{p}{(}\PY{n}{os}\PY{o}{.}\PY{n}{path}\PY{o}{.}\PY{n}{join}\PY{p}{(}\PY{n}{trial\PYZus{}path}\PY{p}{,} \PY{n}{res}\PY{p}{)}\PY{p}{)}
+             \PY{k}{else}\PY{p}{:}            
+                 \PY{k}{for} \PY{n}{i} \PY{o+ow}{in} \PY{n+nb}{range}\PY{p}{(}\PY{l+m+mi}{20}\PY{p}{)}\PY{p}{:}
+                     \PY{n}{trial\PYZus{}name} \PY{o}{=} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{agent0\PYZhy{}trial}\PY{l+s+s1}{\PYZsq{}} \PY{o}{+} \PY{n+nb}{str}\PY{p}{(}\PY{n}{i}\PY{p}{)}
+                     \PY{n}{trial\PYZus{}path} \PY{o}{=} \PY{n}{os}\PY{o}{.}\PY{n}{path}\PY{o}{.}\PY{n}{join}\PY{p}{(}\PY{n}{path}\PY{p}{,} \PY{n}{trial\PYZus{}name}\PY{p}{)}
+                     \PY{c+c1}{\PYZsh{} get the last file and append to files}
+                     \PY{n}{res} \PY{o}{=} \PY{n+nb}{list}\PY{p}{(}\PY{n+nb}{sorted}\PY{p}{(}\PY{n}{os}\PY{o}{.}\PY{n}{listdir}\PY{p}{(}\PY{n}{trial\PYZus{}path}\PY{p}{)}\PY{p}{)}\PY{p}{)}\PY{p}{[}\PY{o}{\PYZhy{}}\PY{l+m+mi}{1}\PY{p}{]}
+                     \PY{n}{files}\PY{o}{.}\PY{n}{append}\PY{p}{(}\PY{n}{os}\PY{o}{.}\PY{n}{path}\PY{o}{.}\PY{n}{join}\PY{p}{(}\PY{n}{trial\PYZus{}path}\PY{p}{,} \PY{n}{res}\PY{p}{)}\PY{p}{)}
+                 \PY{k}{for} \PY{n}{i} \PY{o+ow}{in} \PY{n+nb}{range}\PY{p}{(}\PY{l+m+mi}{20}\PY{p}{)}\PY{p}{:}
+                     \PY{n}{trial\PYZus{}name} \PY{o}{=} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{agent1\PYZhy{}trial}\PY{l+s+s1}{\PYZsq{}} \PY{o}{+} \PY{n+nb}{str}\PY{p}{(}\PY{n}{i}\PY{p}{)}
+                     \PY{n}{trial\PYZus{}path} \PY{o}{=} \PY{n}{os}\PY{o}{.}\PY{n}{path}\PY{o}{.}\PY{n}{join}\PY{p}{(}\PY{n}{path}\PY{p}{,} \PY{n}{trial\PYZus{}name}\PY{p}{)}
+                     \PY{c+c1}{\PYZsh{} get the last file and append to files}
+                     \PY{n}{res} \PY{o}{=} \PY{n+nb}{list}\PY{p}{(}\PY{n+nb}{sorted}\PY{p}{(}\PY{n}{os}\PY{o}{.}\PY{n}{listdir}\PY{p}{(}\PY{n}{trial\PYZus{}path}\PY{p}{)}\PY{p}{)}\PY{p}{)}\PY{p}{[}\PY{o}{\PYZhy{}}\PY{l+m+mi}{1}\PY{p}{]}
+                     \PY{n}{files}\PY{o}{.}\PY{n}{append}\PY{p}{(}\PY{n}{os}\PY{o}{.}\PY{n}{path}\PY{o}{.}\PY{n}{join}\PY{p}{(}\PY{n}{trial\PYZus{}path}\PY{p}{,} \PY{n}{res}\PY{p}{)}\PY{p}{)}
+\end{Verbatim}
+
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}11}]:} \PY{c+c1}{\PYZsh{} experiments[\PYZsq{}dqn\PYZsq{}]}
+\end{Verbatim}
+
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}14}]:} \PY{n}{tb} \PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{/mnt/storage/log\PYZhy{}experiments/runs/masters\PYZhy{}detailed\PYZhy{}3/dqn/agent\PYZhy{}trial0/events.out.tfevents.1547139411.Cerebro}\PY{l+s+s1}{\PYZsq{}}
+         \PY{n}{ea} \PY{o}{=} \PY{n}{event\PYZus{}accumulator}\PY{o}{.}\PY{n}{EventAccumulator}\PY{p}{(}\PY{n}{tb}\PY{p}{)}
+         \PY{n}{ea}\PY{o}{.}\PY{n}{Reload}\PY{p}{(}\PY{p}{)}
+         \PY{n}{metric} \PY{o}{=} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{reward/episode}\PY{l+s+s1}{\PYZsq{}}
+         \PY{n}{data} \PY{o}{=} \PY{n}{ea}\PY{o}{.}\PY{n}{Scalars}\PY{p}{(}\PY{n}{metric}\PY{p}{)}
+         \PY{n}{data}\PY{p}{[}\PY{l+m+mi}{0}\PY{p}{]}\PY{o}{.}\PY{n}{step}\PY{p}{,} \PY{n}{data}\PY{p}{[}\PY{l+m+mi}{0}\PY{p}{]}\PY{o}{.}\PY{n}{value}
+\end{Verbatim}
+
+
+\begin{Verbatim}[commandchars=\\\{\}]
+{\color{outcolor}Out[{\color{outcolor}14}]:} (1, 21.0)
+\end{Verbatim}
+            
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}26}]:} \PY{n}{data}
+\end{Verbatim}
+
+
+\begin{Verbatim}[commandchars=\\\{\}]
+{\color{outcolor}Out[{\color{outcolor}26}]:} [ScalarEvent(wall\_time=1547139411.3868058, step=1, value=21.0),
+          ScalarEvent(wall\_time=1547139411.4899387, step=2, value=12.0),
+          ScalarEvent(wall\_time=1547139411.5205908, step=3, value=11.0),
+          ScalarEvent(wall\_time=1547139411.5437105, step=4, value=15.0),
+          ScalarEvent(wall\_time=1547139411.5625253, step=5, value=15.0),
+          ScalarEvent(wall\_time=1547139411.5853252, step=6, value=18.0),
+          ScalarEvent(wall\_time=1547139411.6078746, step=7, value=18.0),
+          ScalarEvent(wall\_time=1547139411.672045, step=8, value=51.0),
+          ScalarEvent(wall\_time=1547139411.702874, step=9, value=24.0),
+          ScalarEvent(wall\_time=1547139411.7334425, step=10, value=24.0),
+          ScalarEvent(wall\_time=1547139411.7998307, step=11, value=52.0),
+          ScalarEvent(wall\_time=1547139411.8194053, step=12, value=15.0),
+          ScalarEvent(wall\_time=1547139411.855318, step=13, value=28.0),
+          ScalarEvent(wall\_time=1547139411.9137416, step=14, value=45.0),
+          ScalarEvent(wall\_time=1547139411.9593658, step=15, value=35.0),
+          ScalarEvent(wall\_time=1547139411.9921107, step=16, value=26.0),
+          ScalarEvent(wall\_time=1547139412.0152423, step=17, value=18.0),
+          ScalarEvent(wall\_time=1547139412.0327854, step=18, value=14.0),
+          ScalarEvent(wall\_time=1547139412.0466514, step=19, value=11.0),
+          ScalarEvent(wall\_time=1547139412.072864, step=20, value=21.0),
+          ScalarEvent(wall\_time=1547139412.1147733, step=21, value=33.0),
+          ScalarEvent(wall\_time=1547139412.1324346, step=22, value=14.0),
+          ScalarEvent(wall\_time=1547139412.147916, step=23, value=12.0),
+          ScalarEvent(wall\_time=1547139412.1704438, step=24, value=17.0),
+          ScalarEvent(wall\_time=1547139412.196091, step=25, value=19.0),
+          ScalarEvent(wall\_time=1547139412.2116652, step=26, value=12.0),
+          ScalarEvent(wall\_time=1547139412.2387862, step=27, value=21.0),
+          ScalarEvent(wall\_time=1547139412.2552557, step=28, value=12.0),
+          ScalarEvent(wall\_time=1547139412.280203, step=29, value=19.0),
+          ScalarEvent(wall\_time=1547139412.298203, step=30, value=14.0),
+          ScalarEvent(wall\_time=1547139412.3492954, step=31, value=40.0),
+          ScalarEvent(wall\_time=1547139412.372517, step=32, value=18.0),
+          ScalarEvent(wall\_time=1547139412.4391606, step=33, value=52.0),
+          ScalarEvent(wall\_time=1547139412.4628265, step=34, value=18.0),
+          ScalarEvent(wall\_time=1547139412.4850273, step=35, value=17.0),
+          ScalarEvent(wall\_time=1547139412.5025334, step=36, value=13.0),
+          ScalarEvent(wall\_time=1547139412.5189018, step=37, value=13.0),
+          ScalarEvent(wall\_time=1547139412.5412254, step=38, value=18.0),
+          ScalarEvent(wall\_time=1547139412.5649633, step=39, value=18.0),
+          ScalarEvent(wall\_time=1547139412.585457, step=40, value=15.0),
+          ScalarEvent(wall\_time=1547139412.6053655, step=41, value=13.0),
+          ScalarEvent(wall\_time=1547139412.6230881, step=42, value=12.0),
+          ScalarEvent(wall\_time=1547139412.663185, step=43, value=30.0),
+          ScalarEvent(wall\_time=1547139412.6761155, step=44, value=10.0),
+          ScalarEvent(wall\_time=1547139412.6918626, step=45, value=12.0),
+          ScalarEvent(wall\_time=1547139412.7185266, step=46, value=20.0),
+          ScalarEvent(wall\_time=1547139412.7552805, step=47, value=28.0),
+          ScalarEvent(wall\_time=1547139412.7768817, step=48, value=16.0),
+          ScalarEvent(wall\_time=1547139412.7962818, step=49, value=15.0),
+          ScalarEvent(wall\_time=1547139412.8294444, step=50, value=25.0),
+          ScalarEvent(wall\_time=1547139412.849288, step=51, value=15.0),
+          ScalarEvent(wall\_time=1547139412.8638735, step=52, value=11.0),
+          ScalarEvent(wall\_time=1547139412.974475, step=53, value=82.0),
+          ScalarEvent(wall\_time=1547139412.9964206, step=54, value=16.0),
+          ScalarEvent(wall\_time=1547139413.012834, step=55, value=12.0),
+          ScalarEvent(wall\_time=1547139413.065192, step=56, value=40.0),
+          ScalarEvent(wall\_time=1547139413.0844922, step=57, value=15.0),
+          ScalarEvent(wall\_time=1547139413.1101758, step=58, value=20.0),
+          ScalarEvent(wall\_time=1547139413.139301, step=59, value=23.0),
+          ScalarEvent(wall\_time=1547139413.1619954, step=60, value=17.0),
+          ScalarEvent(wall\_time=1547139413.1936214, step=61, value=23.0),
+          ScalarEvent(wall\_time=1547139413.255363, step=62, value=45.0),
+          ScalarEvent(wall\_time=1547139413.285706, step=63, value=23.0),
+          ScalarEvent(wall\_time=1547139413.306892, step=64, value=16.0),
+          ScalarEvent(wall\_time=1547139413.3540945, step=65, value=34.0),
+          ScalarEvent(wall\_time=1547139413.3824089, step=66, value=21.0),
+          ScalarEvent(wall\_time=1547139413.4007766, step=67, value=13.0),
+          ScalarEvent(wall\_time=1547139413.4155462, step=68, value=11.0),
+          ScalarEvent(wall\_time=1547139413.458481, step=69, value=32.0),
+          ScalarEvent(wall\_time=1547139413.5033026, step=70, value=33.0),
+          ScalarEvent(wall\_time=1547139413.5272422, step=71, value=18.0),
+          ScalarEvent(wall\_time=1547139413.5718367, step=72, value=33.0),
+          ScalarEvent(wall\_time=1547139413.6056478, step=73, value=25.0),
+          ScalarEvent(wall\_time=1547139413.639263, step=74, value=25.0),
+          ScalarEvent(wall\_time=1547139413.6606205, step=75, value=16.0),
+          ScalarEvent(wall\_time=1547139413.7069538, step=76, value=34.0),
+          ScalarEvent(wall\_time=1547139413.7336154, step=77, value=19.0),
+          ScalarEvent(wall\_time=1547139413.7584615, step=78, value=19.0),
+          ScalarEvent(wall\_time=1547139413.7980692, step=79, value=29.0),
+          ScalarEvent(wall\_time=1547139413.8695657, step=80, value=52.0),
+          ScalarEvent(wall\_time=1547139413.9147077, step=81, value=32.0),
+          ScalarEvent(wall\_time=1547139413.9498837, step=82, value=26.0),
+          ScalarEvent(wall\_time=1547139413.9692142, step=83, value=14.0),
+          ScalarEvent(wall\_time=1547139414.016903, step=84, value=34.0),
+          ScalarEvent(wall\_time=1547139414.10897, step=85, value=68.0),
+          ScalarEvent(wall\_time=1547139414.1396313, step=86, value=23.0),
+          ScalarEvent(wall\_time=1547139414.1771398, step=87, value=28.0),
+          ScalarEvent(wall\_time=1547139414.2281272, step=88, value=39.0),
+          ScalarEvent(wall\_time=1547139414.2966726, step=89, value=51.0),
+          ScalarEvent(wall\_time=1547139414.3514802, step=90, value=41.0),
+          ScalarEvent(wall\_time=1547139414.3979335, step=91, value=35.0),
+          ScalarEvent(wall\_time=1547139414.4824297, step=92, value=62.0),
+          ScalarEvent(wall\_time=1547139414.533827, step=93, value=37.0),
+          ScalarEvent(wall\_time=1547139414.6026893, step=94, value=48.0),
+          ScalarEvent(wall\_time=1547139414.6867216, step=95, value=62.0),
+          ScalarEvent(wall\_time=1547139414.7559183, step=96, value=51.0),
+          ScalarEvent(wall\_time=1547139414.79025, step=97, value=25.0),
+          ScalarEvent(wall\_time=1547139414.9124277, step=98, value=86.0),
+          ScalarEvent(wall\_time=1547139414.984923, step=99, value=52.0),
+          ScalarEvent(wall\_time=1547139415.0359905, step=100, value=36.0),
+          ScalarEvent(wall\_time=1547139415.1757488, step=101, value=102.0),
+          ScalarEvent(wall\_time=1547139415.273719, step=102, value=68.0),
+          ScalarEvent(wall\_time=1547139415.379473, step=103, value=77.0),
+          ScalarEvent(wall\_time=1547139415.4552534, step=104, value=55.0),
+          ScalarEvent(wall\_time=1547139415.5556877, step=105, value=72.0),
+          ScalarEvent(wall\_time=1547139415.6659164, step=106, value=81.0),
+          ScalarEvent(wall\_time=1547139415.7652268, step=107, value=74.0),
+          ScalarEvent(wall\_time=1547139415.8616953, step=108, value=72.0),
+          ScalarEvent(wall\_time=1547139416.010605, step=109, value=111.0),
+          ScalarEvent(wall\_time=1547139416.1365898, step=110, value=94.0),
+          ScalarEvent(wall\_time=1547139416.2382643, step=111, value=76.0),
+          ScalarEvent(wall\_time=1547139416.378568, step=112, value=102.0),
+          ScalarEvent(wall\_time=1547139416.53446, step=113, value=99.0),
+          ScalarEvent(wall\_time=1547139416.6510458, step=114, value=79.0),
+          ScalarEvent(wall\_time=1547139416.773378, step=115, value=84.0),
+          ScalarEvent(wall\_time=1547139416.943456, step=116, value=114.0),
+          ScalarEvent(wall\_time=1547139417.0735636, step=117, value=88.0),
+          ScalarEvent(wall\_time=1547139417.2336257, step=118, value=109.0),
+          ScalarEvent(wall\_time=1547139417.400359, step=119, value=120.0),
+          ScalarEvent(wall\_time=1547139417.5613823, step=120, value=118.0),
+          ScalarEvent(wall\_time=1547139417.711445, step=121, value=108.0),
+          ScalarEvent(wall\_time=1547139417.8391347, step=122, value=92.0),
+          ScalarEvent(wall\_time=1547139418.0000768, step=123, value=117.0),
+          ScalarEvent(wall\_time=1547139418.1364975, step=124, value=99.0),
+          ScalarEvent(wall\_time=1547139418.260871, step=125, value=90.0),
+          ScalarEvent(wall\_time=1547139418.413538, step=126, value=109.0),
+          ScalarEvent(wall\_time=1547139418.536244, step=127, value=88.0),
+          ScalarEvent(wall\_time=1547139418.6927211, step=128, value=111.0),
+          ScalarEvent(wall\_time=1547139418.8481631, step=129, value=111.0),
+          ScalarEvent(wall\_time=1547139418.9916384, step=130, value=105.0),
+          ScalarEvent(wall\_time=1547139419.1585844, step=131, value=119.0),
+          ScalarEvent(wall\_time=1547139419.3353298, step=132, value=125.0),
+          ScalarEvent(wall\_time=1547139419.490838, step=133, value=112.0),
+          ScalarEvent(wall\_time=1547139419.6473095, step=134, value=109.0),
+          ScalarEvent(wall\_time=1547139419.8294363, step=135, value=131.0),
+          ScalarEvent(wall\_time=1547139419.9806254, step=136, value=107.0),
+          ScalarEvent(wall\_time=1547139420.135536, step=137, value=105.0),
+          ScalarEvent(wall\_time=1547139420.3057747, step=138, value=119.0),
+          ScalarEvent(wall\_time=1547139420.4531708, step=139, value=103.0),
+          ScalarEvent(wall\_time=1547139420.7048109, step=140, value=176.0),
+          ScalarEvent(wall\_time=1547139420.864954, step=141, value=114.0),
+          ScalarEvent(wall\_time=1547139421.061762, step=142, value=137.0),
+          ScalarEvent(wall\_time=1547139421.2371366, step=143, value=122.0),
+          ScalarEvent(wall\_time=1547139421.401675, step=144, value=114.0),
+          ScalarEvent(wall\_time=1547139421.6159408, step=145, value=148.0),
+          ScalarEvent(wall\_time=1547139421.7899384, step=146, value=121.0),
+          ScalarEvent(wall\_time=1547139421.97686, step=147, value=130.0),
+          ScalarEvent(wall\_time=1547139422.2009835, step=148, value=153.0),
+          ScalarEvent(wall\_time=1547139422.3945355, step=149, value=135.0),
+          ScalarEvent(wall\_time=1547139422.6264741, step=150, value=160.0),
+          ScalarEvent(wall\_time=1547139422.8012938, step=151, value=119.0),
+          ScalarEvent(wall\_time=1547139423.0203407, step=152, value=151.0),
+          ScalarEvent(wall\_time=1547139423.2139359, step=153, value=136.0),
+          ScalarEvent(wall\_time=1547139423.4161105, step=154, value=142.0),
+          ScalarEvent(wall\_time=1547139423.6246786, step=155, value=142.0),
+          ScalarEvent(wall\_time=1547139423.8385086, step=156, value=144.0),
+          ScalarEvent(wall\_time=1547139424.0420594, step=157, value=138.0),
+          ScalarEvent(wall\_time=1547139424.28686, step=158, value=167.0),
+          ScalarEvent(wall\_time=1547139424.4940903, step=159, value=140.0),
+          ScalarEvent(wall\_time=1547139424.6967342, step=160, value=138.0),
+          ScalarEvent(wall\_time=1547139424.8753994, step=161, value=121.0),
+          ScalarEvent(wall\_time=1547139425.0600882, step=162, value=127.0),
+          ScalarEvent(wall\_time=1547139425.2527072, step=163, value=130.0),
+          ScalarEvent(wall\_time=1547139425.4511433, step=164, value=133.0),
+          ScalarEvent(wall\_time=1547139425.6533997, step=165, value=136.0),
+          ScalarEvent(wall\_time=1547139425.8669133, step=166, value=143.0),
+          ScalarEvent(wall\_time=1547139426.066879, step=167, value=136.0),
+          ScalarEvent(wall\_time=1547139426.308083, step=168, value=164.0),
+          ScalarEvent(wall\_time=1547139426.523507, step=169, value=143.0),
+          ScalarEvent(wall\_time=1547139426.7591271, step=170, value=155.0),
+          ScalarEvent(wall\_time=1547139426.976962, step=171, value=146.0),
+          ScalarEvent(wall\_time=1547139427.2237892, step=172, value=162.0),
+          ScalarEvent(wall\_time=1547139427.435404, step=173, value=140.0),
+          ScalarEvent(wall\_time=1547139427.6285932, step=174, value=127.0),
+          ScalarEvent(wall\_time=1547139427.858104, step=175, value=149.0),
+          ScalarEvent(wall\_time=1547139428.0695803, step=176, value=138.0),
+          ScalarEvent(wall\_time=1547139428.2714927, step=177, value=133.0),
+          ScalarEvent(wall\_time=1547139428.5085783, step=178, value=156.0),
+          ScalarEvent(wall\_time=1547139428.7035742, step=179, value=129.0),
+          ScalarEvent(wall\_time=1547139428.9523444, step=180, value=168.0),
+          ScalarEvent(wall\_time=1547139429.1918306, step=181, value=160.0),
+          ScalarEvent(wall\_time=1547139429.4157562, step=182, value=144.0),
+          ScalarEvent(wall\_time=1547139429.6533012, step=183, value=145.0),
+          ScalarEvent(wall\_time=1547139429.8673732, step=184, value=143.0),
+          ScalarEvent(wall\_time=1547139430.0785239, step=185, value=137.0),
+          ScalarEvent(wall\_time=1547139430.272105, step=186, value=127.0),
+          ScalarEvent(wall\_time=1547139430.50527, step=187, value=151.0),
+          ScalarEvent(wall\_time=1547139430.7094727, step=188, value=131.0),
+          ScalarEvent(wall\_time=1547139430.9924195, step=189, value=184.0),
+          ScalarEvent(wall\_time=1547139431.2599614, step=190, value=173.0),
+          ScalarEvent(wall\_time=1547139431.5178626, step=191, value=166.0),
+          ScalarEvent(wall\_time=1547139431.7344315, step=192, value=142.0),
+          ScalarEvent(wall\_time=1547139431.9286063, step=193, value=127.0),
+          ScalarEvent(wall\_time=1547139432.21188, step=194, value=183.0),
+          ScalarEvent(wall\_time=1547139432.43261, step=195, value=146.0),
+          ScalarEvent(wall\_time=1547139432.6397061, step=196, value=135.0),
+          ScalarEvent(wall\_time=1547139432.8797503, step=197, value=158.0),
+          ScalarEvent(wall\_time=1547139433.1357965, step=198, value=166.0),
+          ScalarEvent(wall\_time=1547139433.383647, step=199, value=159.0),
+          ScalarEvent(wall\_time=1547139433.6068404, step=200, value=144.0),
+          ScalarEvent(wall\_time=1547139433.8730373, step=201, value=172.0),
+          ScalarEvent(wall\_time=1547139434.0957518, step=202, value=146.0),
+          ScalarEvent(wall\_time=1547139434.3269184, step=203, value=151.0),
+          ScalarEvent(wall\_time=1547139434.5607493, step=204, value=149.0),
+          ScalarEvent(wall\_time=1547139434.7931263, step=205, value=150.0),
+          ScalarEvent(wall\_time=1547139434.9866946, step=206, value=127.0),
+          ScalarEvent(wall\_time=1547139435.292893, step=207, value=200.0),
+          ScalarEvent(wall\_time=1547139435.5334105, step=208, value=153.0),
+          ScalarEvent(wall\_time=1547139435.7953637, step=209, value=169.0),
+          ScalarEvent(wall\_time=1547139436.0012786, step=210, value=132.0),
+          ScalarEvent(wall\_time=1547139436.265564, step=211, value=171.0),
+          ScalarEvent(wall\_time=1547139436.5032597, step=212, value=153.0),
+          ScalarEvent(wall\_time=1547139436.756489, step=213, value=161.0),
+          ScalarEvent(wall\_time=1547139437.0178888, step=214, value=164.0),
+          ScalarEvent(wall\_time=1547139437.2699952, step=215, value=157.0),
+          ScalarEvent(wall\_time=1547139437.5154476, step=216, value=152.0),
+          ScalarEvent(wall\_time=1547139437.7382996, step=217, value=138.0),
+          ScalarEvent(wall\_time=1547139437.9412785, step=218, value=126.0),
+          ScalarEvent(wall\_time=1547139438.2454312, step=219, value=188.0),
+          ScalarEvent(wall\_time=1547139438.4880702, step=220, value=152.0),
+          ScalarEvent(wall\_time=1547139438.7097816, step=221, value=138.0),
+          ScalarEvent(wall\_time=1547139438.9377851, step=222, value=143.0),
+          ScalarEvent(wall\_time=1547139439.173124, step=223, value=147.0),
+          ScalarEvent(wall\_time=1547139439.4122822, step=224, value=148.0),
+          ScalarEvent(wall\_time=1547139439.6419687, step=225, value=138.0),
+          ScalarEvent(wall\_time=1547139439.857018, step=226, value=132.0),
+          ScalarEvent(wall\_time=1547139440.1658218, step=227, value=187.0),
+          ScalarEvent(wall\_time=1547139440.3704736, step=228, value=125.0),
+          ScalarEvent(wall\_time=1547139440.5957346, step=229, value=136.0),
+          ScalarEvent(wall\_time=1547139440.8154354, step=230, value=132.0),
+          ScalarEvent(wall\_time=1547139441.0838866, step=231, value=162.0),
+          ScalarEvent(wall\_time=1547139441.319065, step=232, value=143.0),
+          ScalarEvent(wall\_time=1547139441.543513, step=233, value=135.0),
+          ScalarEvent(wall\_time=1547139441.7830234, step=234, value=144.0),
+          ScalarEvent(wall\_time=1547139442.0538747, step=235, value=162.0),
+          ScalarEvent(wall\_time=1547139442.3026109, step=236, value=151.0),
+          ScalarEvent(wall\_time=1547139442.5406346, step=237, value=145.0),
+          ScalarEvent(wall\_time=1547139442.7777581, step=238, value=145.0),
+          ScalarEvent(wall\_time=1547139443.0243492, step=239, value=152.0),
+          ScalarEvent(wall\_time=1547139443.2987456, step=240, value=169.0),
+          ScalarEvent(wall\_time=1547139443.5219934, step=241, value=138.0),
+          ScalarEvent(wall\_time=1547139443.8397126, step=242, value=200.0),
+          ScalarEvent(wall\_time=1547139444.167664, step=243, value=200.0),
+          ScalarEvent(wall\_time=1547139444.391165, step=244, value=135.0),
+          ScalarEvent(wall\_time=1547139444.6433053, step=245, value=157.0),
+          ScalarEvent(wall\_time=1547139444.9701533, step=246, value=200.0),
+          ScalarEvent(wall\_time=1547139445.1939096, step=247, value=136.0),
+          ScalarEvent(wall\_time=1547139445.5229576, step=248, value=200.0),
+          ScalarEvent(wall\_time=1547139445.775333, step=249, value=154.0),
+          ScalarEvent(wall\_time=1547139446.009608, step=250, value=143.0),
+          ScalarEvent(wall\_time=1547139446.2528007, step=251, value=152.0),
+          ScalarEvent(wall\_time=1547139446.5209575, step=252, value=167.0),
+          ScalarEvent(wall\_time=1547139446.7324157, step=253, value=127.0),
+          ScalarEvent(wall\_time=1547139446.977648, step=254, value=150.0),
+          ScalarEvent(wall\_time=1547139447.2812555, step=255, value=189.0),
+          ScalarEvent(wall\_time=1547139447.6051924, step=256, value=200.0),
+          ScalarEvent(wall\_time=1547139447.894509, step=257, value=180.0),
+          ScalarEvent(wall\_time=1547139448.139627, step=258, value=152.0),
+          ScalarEvent(wall\_time=1547139448.4669297, step=259, value=200.0),
+          ScalarEvent(wall\_time=1547139448.7863414, step=260, value=200.0),
+          ScalarEvent(wall\_time=1547139449.1107342, step=261, value=199.0),
+          ScalarEvent(wall\_time=1547139449.4286196, step=262, value=195.0),
+          ScalarEvent(wall\_time=1547139449.7496364, step=263, value=196.0),
+          ScalarEvent(wall\_time=1547139450.0402353, step=264, value=178.0),
+          ScalarEvent(wall\_time=1547139450.307098, step=265, value=165.0),
+          ScalarEvent(wall\_time=1547139450.5672858, step=266, value=162.0),
+          ScalarEvent(wall\_time=1547139450.8533866, step=267, value=177.0),
+          ScalarEvent(wall\_time=1547139451.1161523, step=268, value=164.0),
+          ScalarEvent(wall\_time=1547139451.4317734, step=269, value=198.0),
+          ScalarEvent(wall\_time=1547139451.7305157, step=270, value=180.0),
+          ScalarEvent(wall\_time=1547139452.025066, step=271, value=181.0),
+          ScalarEvent(wall\_time=1547139452.2905226, step=272, value=159.0),
+          ScalarEvent(wall\_time=1547139452.534578, step=273, value=149.0),
+          ScalarEvent(wall\_time=1547139452.8051546, step=274, value=166.0),
+          ScalarEvent(wall\_time=1547139453.0391607, step=275, value=142.0),
+          ScalarEvent(wall\_time=1547139453.2621567, step=276, value=138.0),
+          ScalarEvent(wall\_time=1547139453.4989145, step=277, value=144.0),
+          ScalarEvent(wall\_time=1547139453.7217178, step=278, value=135.0),
+          ScalarEvent(wall\_time=1547139453.954516, step=279, value=144.0),
+          ScalarEvent(wall\_time=1547139454.1431043, step=280, value=118.0),
+          ScalarEvent(wall\_time=1547139454.3585315, step=281, value=132.0),
+          ScalarEvent(wall\_time=1547139454.5794482, step=282, value=136.0),
+          ScalarEvent(wall\_time=1547139454.8084009, step=283, value=140.0),
+          ScalarEvent(wall\_time=1547139455.0202684, step=284, value=130.0),
+          ScalarEvent(wall\_time=1547139455.3486927, step=285, value=200.0),
+          ScalarEvent(wall\_time=1547139455.5771601, step=286, value=138.0),
+          ScalarEvent(wall\_time=1547139455.8621693, step=287, value=175.0),
+          ScalarEvent(wall\_time=1547139456.1120098, step=288, value=153.0),
+          ScalarEvent(wall\_time=1547139456.3574758, step=289, value=152.0),
+          ScalarEvent(wall\_time=1547139456.600388, step=290, value=149.0),
+          ScalarEvent(wall\_time=1547139456.8770998, step=291, value=174.0),
+          ScalarEvent(wall\_time=1547139457.116847, step=292, value=147.0),
+          ScalarEvent(wall\_time=1547139457.3781455, step=293, value=159.0),
+          ScalarEvent(wall\_time=1547139457.6419659, step=294, value=161.0),
+          ScalarEvent(wall\_time=1547139457.8919616, step=295, value=156.0),
+          ScalarEvent(wall\_time=1547139458.1490014, step=296, value=160.0),
+          ScalarEvent(wall\_time=1547139458.3883853, step=297, value=149.0),
+          ScalarEvent(wall\_time=1547139458.6786306, step=298, value=179.0),
+          ScalarEvent(wall\_time=1547139459.0014243, step=299, value=200.0),
+          ScalarEvent(wall\_time=1547139459.3133333, step=300, value=191.0),
+          ScalarEvent(wall\_time=1547139459.5900242, step=301, value=168.0),
+          ScalarEvent(wall\_time=1547139459.8939006, step=302, value=186.0),
+          ScalarEvent(wall\_time=1547139460.2169037, step=303, value=200.0),
+          ScalarEvent(wall\_time=1547139460.5004387, step=304, value=174.0),
+          ScalarEvent(wall\_time=1547139460.774408, step=305, value=167.0),
+          ScalarEvent(wall\_time=1547139461.082334, step=306, value=189.0),
+          ScalarEvent(wall\_time=1547139461.4097311, step=307, value=200.0),
+          ScalarEvent(wall\_time=1547139461.7059443, step=308, value=183.0),
+          ScalarEvent(wall\_time=1547139462.0014048, step=309, value=180.0),
+          ScalarEvent(wall\_time=1547139462.3056571, step=310, value=186.0),
+          ScalarEvent(wall\_time=1547139462.6068962, step=311, value=184.0),
+          ScalarEvent(wall\_time=1547139462.9347818, step=312, value=200.0),
+          ScalarEvent(wall\_time=1547139463.2564716, step=313, value=200.0),
+          ScalarEvent(wall\_time=1547139463.5595, step=314, value=187.0),
+          ScalarEvent(wall\_time=1547139463.859026, step=315, value=185.0),
+          ScalarEvent(wall\_time=1547139464.1181433, step=316, value=157.0),
+          ScalarEvent(wall\_time=1547139464.3719554, step=317, value=155.0),
+          ScalarEvent(wall\_time=1547139464.6452494, step=318, value=167.0),
+          ScalarEvent(wall\_time=1547139464.9262033, step=319, value=172.0),
+          ScalarEvent(wall\_time=1547139465.2308135, step=320, value=185.0),
+          ScalarEvent(wall\_time=1547139465.5432687, step=321, value=188.0),
+          ScalarEvent(wall\_time=1547139465.8517132, step=322, value=189.0),
+          ScalarEvent(wall\_time=1547139466.156833, step=323, value=187.0),
+          ScalarEvent(wall\_time=1547139466.4490845, step=324, value=178.0),
+          ScalarEvent(wall\_time=1547139466.702813, step=325, value=155.0),
+          ScalarEvent(wall\_time=1547139467.0025623, step=326, value=183.0),
+          ScalarEvent(wall\_time=1547139467.2671363, step=327, value=157.0),
+          ScalarEvent(wall\_time=1547139467.5989895, step=328, value=198.0),
+          ScalarEvent(wall\_time=1547139467.9278674, step=329, value=200.0),
+          ScalarEvent(wall\_time=1547139468.2488122, step=330, value=200.0),
+          ScalarEvent(wall\_time=1547139468.41278, step=331, value=100.0),
+          ScalarEvent(wall\_time=1547139468.744162, step=332, value=200.0),
+          ScalarEvent(wall\_time=1547139468.9334033, step=333, value=115.0),
+          ScalarEvent(wall\_time=1547139469.2581139, step=334, value=200.0),
+          ScalarEvent(wall\_time=1547139469.5857832, step=335, value=200.0),
+          ScalarEvent(wall\_time=1547139469.9096355, step=336, value=200.0),
+          ScalarEvent(wall\_time=1547139470.2320292, step=337, value=200.0),
+          ScalarEvent(wall\_time=1547139470.5550418, step=338, value=200.0),
+          ScalarEvent(wall\_time=1547139470.8787124, step=339, value=200.0),
+          ScalarEvent(wall\_time=1547139471.2037055, step=340, value=200.0),
+          ScalarEvent(wall\_time=1547139471.5282445, step=341, value=200.0),
+          ScalarEvent(wall\_time=1547139471.8542774, step=342, value=200.0),
+          ScalarEvent(wall\_time=1547139472.1719956, step=343, value=200.0)]
+\end{Verbatim}
+            
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}32}]:} \PY{n+nb}{len}\PY{p}{(}\PY{n}{data}\PY{p}{)}
+\end{Verbatim}
+
+
+\begin{Verbatim}[commandchars=\\\{\}]
+{\color{outcolor}Out[{\color{outcolor}32}]:} 343
+\end{Verbatim}
+            
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}35}]:} \PY{n}{test}\PY{o}{=} \PY{p}{[}\PY{p}{]}
+         \PY{k}{for} \PY{n}{e} \PY{o+ow}{in} \PY{n}{data}\PY{p}{:}
+             \PY{n}{test}\PY{o}{.}\PY{n}{append}\PY{p}{(}\PY{n}{e}\PY{o}{.}\PY{n}{value}\PY{p}{)}
+         \PY{k}{for} \PY{n}{idx} \PY{o+ow}{in} \PY{n+nb}{range}\PY{p}{(}\PY{n+nb}{len}\PY{p}{(}\PY{n}{data}\PY{p}{)}\PY{o}{+}\PY{l+m+mi}{1}\PY{p}{,} \PY{l+m+mi}{501}\PY{p}{)}\PY{p}{:}
+             \PY{n}{test}\PY{o}{.}\PY{n}{append}\PY{p}{(}\PY{n}{idx}\PY{p}{)}
+         \PY{n+nb}{len}\PY{p}{(}\PY{n}{test}\PY{p}{)}
+\end{Verbatim}
+
+
+\begin{Verbatim}[commandchars=\\\{\}]
+{\color{outcolor}Out[{\color{outcolor}35}]:} 500
+\end{Verbatim}
+            
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}24}]:} \PY{c+c1}{\PYZsh{} test}
+\end{Verbatim}
+
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}83}]:} \PY{n}{experiments}\PY{o}{.}\PY{n}{keys}\PY{p}{(}\PY{p}{)}
+\end{Verbatim}
+
+
+\begin{Verbatim}[commandchars=\\\{\}]
+{\color{outcolor}Out[{\color{outcolor}83}]:} dict\_keys(['dqn\_sharing', 'dqn\_prio\_sharing', 'dqn\_prio\_focus\_sharing', 'dqn\_focus\_sharing', 'dqn', 'dqn\_prio'])
+\end{Verbatim}
+            
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor} }]:} \PY{c+c1}{\PYZsh{} don\PYZsq{}t run again for now}
+        \PY{c+c1}{\PYZsh{} metric = \PYZsq{}reward/episode\PYZsq{}}
+        \PY{c+c1}{\PYZsh{} data = \PYZob{}k:defaultdict(list) for k in experiments.keys()\PYZcb{}}
+        \PY{c+c1}{\PYZsh{} for exp, runs in experiments.items():}
+        \PY{c+c1}{\PYZsh{}     for run in runs:}
+        \PY{c+c1}{\PYZsh{}         ea = event\PYZus{}accumulator.EventAccumulator(run)}
+        \PY{c+c1}{\PYZsh{}         ea.Reload()}
+        \PY{c+c1}{\PYZsh{}         events = ea.Scalars(metric)}
+        \PY{c+c1}{\PYZsh{}         for e in events:}
+        \PY{c+c1}{\PYZsh{}             data[exp][e.step].append(e.value)}
+                    
+\end{Verbatim}
+
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}84}]:} \PY{k}{for} \PY{n}{exp}\PY{p}{,} \PY{n}{runs} \PY{o+ow}{in} \PY{n}{experiments}\PY{o}{.}\PY{n}{items}\PY{p}{(}\PY{p}{)}\PY{p}{:}
+             \PY{n+nb}{print}\PY{p}{(}\PY{n}{exp}\PY{p}{)}
+\end{Verbatim}
+
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+dqn\_sharing
+dqn\_prio\_sharing
+dqn\_prio\_focus\_sharing
+dqn\_focus\_sharing
+dqn
+dqn\_prio
+
+    \end{Verbatim}
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}89}]:} \PY{c+c1}{\PYZsh{} don\PYZsq{}t run again for now}
+         \PY{n}{metric} \PY{o}{=} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{reward/episode}\PY{l+s+s1}{\PYZsq{}}
+         \PY{n}{data} \PY{o}{=} \PY{p}{\PYZob{}}\PY{n}{k}\PY{p}{:}\PY{n}{defaultdict}\PY{p}{(}\PY{n+nb}{list}\PY{p}{)} \PY{k}{for} \PY{n}{k} \PY{o+ow}{in} \PY{n}{experiments}\PY{o}{.}\PY{n}{keys}\PY{p}{(}\PY{p}{)}\PY{p}{\PYZcb{}}
+         \PY{k}{for} \PY{n}{exp}\PY{p}{,} \PY{n}{runs} \PY{o+ow}{in} \PY{n}{experiments}\PY{o}{.}\PY{n}{items}\PY{p}{(}\PY{p}{)}\PY{p}{:}
+             \PY{k}{for} \PY{n}{run} \PY{o+ow}{in} \PY{n}{runs}\PY{p}{:}
+                 \PY{n}{ea} \PY{o}{=} \PY{n}{event\PYZus{}accumulator}\PY{o}{.}\PY{n}{EventAccumulator}\PY{p}{(}\PY{n}{run}\PY{p}{)}
+                 \PY{n}{ea}\PY{o}{.}\PY{n}{Reload}\PY{p}{(}\PY{p}{)}
+                 \PY{n}{events} \PY{o}{=} \PY{n}{ea}\PY{o}{.}\PY{n}{Scalars}\PY{p}{(}\PY{n}{metric}\PY{p}{)}
+                 \PY{k}{for} \PY{n}{e} \PY{o+ow}{in} \PY{n}{events}\PY{p}{:}
+                     \PY{n}{data}\PY{p}{[}\PY{n}{exp}\PY{p}{]}\PY{p}{[}\PY{n}{e}\PY{o}{.}\PY{n}{step}\PY{p}{]}\PY{o}{.}\PY{n}{append}\PY{p}{(}\PY{n}{e}\PY{o}{.}\PY{n}{value}\PY{p}{)}
+                 \PY{c+c1}{\PYZsh{} in each run, if there are less episodes than 500, add manually}
+                 \PY{k}{for} \PY{n}{idx} \PY{o+ow}{in} \PY{n+nb}{range}\PY{p}{(}\PY{n+nb}{len}\PY{p}{(}\PY{n}{events}\PY{p}{)}\PY{o}{+}\PY{l+m+mi}{1}\PY{p}{,} \PY{l+m+mi}{501}\PY{p}{)}\PY{p}{:}
+                     \PY{n}{data}\PY{p}{[}\PY{n}{exp}\PY{p}{]}\PY{p}{[}\PY{n}{idx}\PY{p}{]}\PY{o}{.}\PY{n}{append}\PY{p}{(}\PY{l+m+mf}{200.0}\PY{p}{)}
+                     
+\end{Verbatim}
+
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}90}]:} \PY{c+c1}{\PYZsh{} check if it is really an integer}
+         \PY{c+c1}{\PYZsh{} and check if sorting is going to work out}
+\end{Verbatim}
+
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}91}]:} \PY{k+kn}{import} \PY{n+nn}{matplotlib}
+         \PY{n}{matplotlib}\PY{o}{.}\PY{n}{rc}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{xtick}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{labelsize}\PY{o}{=}\PY{l+m+mi}{14}\PY{p}{)}
+         \PY{n}{matplotlib}\PY{o}{.}\PY{n}{rc}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{ytick}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{labelsize}\PY{o}{=}\PY{l+m+mi}{14}\PY{p}{)}
+         \PY{n}{plt}\PY{o}{.}\PY{n}{rcParams}\PY{o}{.}\PY{n}{update}\PY{p}{(}\PY{p}{\PYZob{}}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{font.size}\PY{l+s+s1}{\PYZsq{}}\PY{p}{:} \PY{l+m+mi}{14}\PY{p}{\PYZcb{}}\PY{p}{)}
+         \PY{n}{plt}\PY{o}{.}\PY{n}{rcParams}\PY{o}{.}\PY{n}{update}\PY{p}{(}\PY{p}{\PYZob{}}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{axes.grid}\PY{l+s+s2}{\PYZdq{}}\PY{p}{:} \PY{k+kc}{True}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{grid.linewidth}\PY{l+s+s2}{\PYZdq{}}\PY{p}{:} \PY{l+m+mf}{0.75}\PY{p}{\PYZcb{}}\PY{p}{)}
+\end{Verbatim}
+
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}92}]:} \PY{n}{experiments\PYZus{}labels} \PY{o}{=} \PY{p}{\PYZob{}}
+             \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{dqn\PYZus{}sharing}\PY{l+s+s1}{\PYZsq{}}\PY{p}{:} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{DQN + Naive ES}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,}
+             \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{dqn\PYZus{}prio\PYZus{}sharing}\PY{l+s+s1}{\PYZsq{}}\PY{p}{:} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{DQN\PYZhy{}PR + Prioritized ES}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} 
+             \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{dqn\PYZus{}prio\PYZus{}focus\PYZus{}sharing}\PY{l+s+s1}{\PYZsq{}}\PY{p}{:} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{DQN\PYZhy{}PR + Prioritized Focused ES}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} 
+             \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{dqn\PYZus{}focus\PYZus{}sharing}\PY{l+s+s1}{\PYZsq{}}\PY{p}{:} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{DQN + Focused ES}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} 
+             \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{dqn}\PY{l+s+s1}{\PYZsq{}}\PY{p}{:} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{DQN}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,}
+             \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{dqn\PYZus{}prio}\PY{l+s+s1}{\PYZsq{}}\PY{p}{:} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{DQN\PYZhy{}PR}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,}
+         \PY{p}{\PYZcb{}}
+\end{Verbatim}
+
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}93}]:} \PY{n}{data}\PY{o}{.}\PY{n}{keys}\PY{p}{(}\PY{p}{)}
+\end{Verbatim}
+
+
+\begin{Verbatim}[commandchars=\\\{\}]
+{\color{outcolor}Out[{\color{outcolor}93}]:} dict\_keys(['dqn\_sharing', 'dqn\_prio\_sharing', 'dqn\_prio\_focus\_sharing', 'dqn\_focus\_sharing', 'dqn', 'dqn\_prio'])
+\end{Verbatim}
+            
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}94}]:} \PY{c+c1}{\PYZsh{} variation, with dataframe, to try and use seaborn plot }
+         \PY{c+c1}{\PYZsh{} this should be a better way of doing this}
+         \PY{c+c1}{\PYZsh{} but we have yet to see how it works}
+         \PY{c+c1}{\PYZsh{} it is taking a long time to open all those runs}
+         \PY{n}{long} \PY{o}{=}\PY{p}{[}\PY{p}{]}
+         \PY{n}{experiment\PYZus{}keys} \PY{o}{=} \PY{p}{[}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{dqn}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{dqn\PYZus{}sharing}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{dqn\PYZus{}focus\PYZus{}sharing}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{dqn\PYZus{}prio}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{dqn\PYZus{}prio\PYZus{}sharing}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{dqn\PYZus{}prio\PYZus{}focus\PYZus{}sharing}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]}
+         \PY{k}{for} \PY{n}{exp} \PY{o+ow}{in} \PY{n}{experiment\PYZus{}keys}\PY{p}{:}
+             \PY{n}{steps} \PY{o}{=} \PY{n}{data}\PY{p}{[}\PY{n}{exp}\PY{p}{]}
+             \PY{k}{for} \PY{n}{step}\PY{p}{,} \PY{n}{values} \PY{o+ow}{in} \PY{n+nb}{sorted}\PY{p}{(}\PY{n}{steps}\PY{o}{.}\PY{n}{items}\PY{p}{(}\PY{p}{)}\PY{p}{,} \PY{n}{key}\PY{o}{=}\PY{k}{lambda} \PY{n}{x}\PY{p}{:}\PY{n}{x}\PY{p}{[}\PY{l+m+mi}{0}\PY{p}{]}\PY{p}{)}\PY{p}{:}
+                 \PY{k}{for} \PY{n}{value} \PY{o+ow}{in} \PY{n}{values}\PY{p}{:}
+                     \PY{n}{long}\PY{o}{.}\PY{n}{append}\PY{p}{(}
+                         \PY{p}{\PYZob{}}
+                             \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{algorithm}\PY{l+s+s1}{\PYZsq{}}\PY{p}{:} \PY{n}{experiments\PYZus{}labels}\PY{p}{[}\PY{n}{exp}\PY{p}{]}\PY{p}{,}
+                             \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{episode}\PY{l+s+s1}{\PYZsq{}}\PY{p}{:} \PY{n+nb}{int}\PY{p}{(}\PY{n}{step}\PY{p}{)}\PY{p}{,}
+                             \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{reward}\PY{l+s+s1}{\PYZsq{}}\PY{p}{:} \PY{n}{value}
+                         \PY{p}{\PYZcb{}}
+                     \PY{p}{)}
+         
+         \PY{n}{df} \PY{o}{=} \PY{n}{pd}\PY{o}{.}\PY{n}{DataFrame}\PY{o}{.}\PY{n}{from\PYZus{}dict}\PY{p}{(}\PY{n}{long}\PY{p}{)}
+\end{Verbatim}
+
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}95}]:} \PY{n}{df}\PY{p}{[}\PY{n}{df}\PY{p}{[}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{algorithm}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]}\PY{o}{==}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{DQN\PYZhy{}PR}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]}\PY{p}{[}\PY{n}{df}\PY{p}{[}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{episode}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]}\PY{o}{==}\PY{l+m+mi}{100}\PY{p}{]}\PY{o}{.}\PY{n}{head}\PY{p}{(}\PY{l+m+mi}{30}\PY{p}{)}
+\end{Verbatim}
+
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+/home/lucas/.conda/envs/marlo/lib/python3.6/site-packages/ipykernel/\_\_main\_\_.py:1: UserWarning: Boolean Series key will be reindexed to match DataFrame index.
+  if \_\_name\_\_ == '\_\_main\_\_':
+
+    \end{Verbatim}
+
+\begin{Verbatim}[commandchars=\\\{\}]
+{\color{outcolor}Out[{\color{outcolor}95}]:}       algorithm  episode  reward
+         64901    DQN-PR      100    33.0
+         64902    DQN-PR      100   200.0
+         64903    DQN-PR      100   200.0
+         64904    DQN-PR      100   200.0
+         64905    DQN-PR      100   200.0
+         64906    DQN-PR      100   200.0
+         64907    DQN-PR      100   114.0
+         64908    DQN-PR      100   158.0
+         64909    DQN-PR      100   200.0
+         64910    DQN-PR      100   185.0
+         64911    DQN-PR      100   123.0
+         64912    DQN-PR      100   193.0
+         64913    DQN-PR      100   114.0
+         64914    DQN-PR      100   200.0
+         64915    DQN-PR      100   200.0
+         64916    DQN-PR      100   122.0
+         64917    DQN-PR      100   130.0
+         64918    DQN-PR      100   167.0
+         64919    DQN-PR      100   188.0
+         64920    DQN-PR      100   200.0
+         64921    DQN-PR      100   180.0
+         64922    DQN-PR      100   137.0
+         64923    DQN-PR      100   154.0
+         64924    DQN-PR      100   200.0
+         64925    DQN-PR      100   200.0
+         64926    DQN-PR      100   195.0
+         64927    DQN-PR      100   132.0
+         64928    DQN-PR      100   200.0
+         64929    DQN-PR      100   200.0
+         64930    DQN-PR      100   200.0
+\end{Verbatim}
+            
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}96}]:} \PY{c+c1}{\PYZsh{} filter data}
+         \PY{n}{regular} \PY{o}{=} \PY{p}{[}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{DQN}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{DQN + Naive ES}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{DQN + Focused ES}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]}
+         \PY{n}{prio} \PY{o}{=} \PY{p}{[}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{DQN\PYZhy{}PR}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{DQN\PYZhy{}PR + Prioritized ES}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{DQN\PYZhy{}PR + Prioritized Focused ES}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]}
+         \PY{n}{best} \PY{o}{=} \PY{p}{[}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{DQN + Focused ES}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{DQN\PYZhy{}PR + Prioritized Focused ES}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]}
+\end{Verbatim}
+
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}97}]:} \PY{n}{df\PYZus{}plot} \PY{o}{=} \PY{n}{df}\PY{p}{[}\PY{n}{df}\PY{p}{[}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{episode}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]} \PY{o}{\PYZlt{}}\PY{o}{=} \PY{l+m+mi}{500}\PY{p}{]} \PY{c+c1}{\PYZsh{} change later with more data}
+         \PY{n}{df\PYZus{}plot} \PY{o}{=} \PY{n}{df\PYZus{}plot}\PY{p}{[}\PY{n}{df\PYZus{}plot}\PY{p}{[}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{algorithm}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]}\PY{o}{.}\PY{n}{isin}\PY{p}{(}\PY{n}{regular}\PY{p}{)}\PY{p}{]}
+         
+         \PY{n}{plt}\PY{o}{.}\PY{n}{figure}\PY{p}{(}\PY{n}{figsize}\PY{o}{=}\PY{p}{(}\PY{l+m+mi}{16}\PY{p}{,}\PY{l+m+mi}{7}\PY{p}{)}\PY{p}{)}
+         \PY{n}{sns}\PY{o}{.}\PY{n}{lineplot}\PY{p}{(}\PY{n}{x}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{episode}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{y}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{reward}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{hue}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{algorithm}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{data}\PY{o}{=}\PY{n}{df\PYZus{}plot}\PY{p}{,} \PY{n}{legend}\PY{o}{=}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{brief}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+         \PY{n}{plt}\PY{o}{.}\PY{n}{savefig}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{rewards\PYZhy{}regulardqn.png}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{dpi}\PY{o}{=}\PY{l+m+mi}{200}\PY{p}{,} \PY{n}{bbox\PYZus{}inches}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{tight}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
+\end{Verbatim}
+
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+/home/lucas/.conda/envs/marlo/lib/python3.6/site-packages/scipy/stats/stats.py:1713: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  return np.add.reduce(sorted[indexer] * weights, axis=axis) / sumval
+
+    \end{Verbatim}
+
+    \begin{center}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{output_19_1.png}
+    \end{center}
+    { \hspace*{\fill} \\}
+    
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}98}]:} \PY{n}{df\PYZus{}plot} \PY{o}{=} \PY{n}{df}\PY{p}{[}\PY{n}{df}\PY{p}{[}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{episode}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]} \PY{o}{\PYZlt{}}\PY{o}{=} \PY{l+m+mi}{500}\PY{p}{]} \PY{c+c1}{\PYZsh{} change later with more data}
+         \PY{n}{df\PYZus{}plot} \PY{o}{=} \PY{n}{df\PYZus{}plot}\PY{p}{[}\PY{n}{df\PYZus{}plot}\PY{p}{[}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{algorithm}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]}\PY{o}{.}\PY{n}{isin}\PY{p}{(}\PY{n}{regular}\PY{p}{)}\PY{p}{]}
+         
+         \PY{n}{plt}\PY{o}{.}\PY{n}{figure}\PY{p}{(}\PY{n}{figsize}\PY{o}{=}\PY{p}{(}\PY{l+m+mi}{16}\PY{p}{,}\PY{l+m+mi}{7}\PY{p}{)}\PY{p}{)}
+         \PY{n}{sns}\PY{o}{.}\PY{n}{lineplot}\PY{p}{(}\PY{n}{x}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{episode}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{y}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{reward}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{hue}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{algorithm}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{data}\PY{o}{=}\PY{n}{df\PYZus{}plot}\PY{p}{,} \PY{n}{legend}\PY{o}{=}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{brief}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{n}{estimator}\PY{o}{=}\PY{n}{np}\PY{o}{.}\PY{n}{median}\PY{p}{)}
+         \PY{n}{plt}\PY{o}{.}\PY{n}{savefig}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{rewards\PYZhy{}regulardqn.png}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{dpi}\PY{o}{=}\PY{l+m+mi}{200}\PY{p}{,} \PY{n}{bbox\PYZus{}inches}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{tight}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
+\end{Verbatim}
+
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+/home/lucas/.conda/envs/marlo/lib/python3.6/site-packages/scipy/stats/stats.py:1713: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  return np.add.reduce(sorted[indexer] * weights, axis=axis) / sumval
+
+    \end{Verbatim}
+
+    \begin{center}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{output_20_1.png}
+    \end{center}
+    { \hspace*{\fill} \\}
+    
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}99}]:} \PY{n}{df\PYZus{}plot} \PY{o}{=} \PY{n}{df}\PY{p}{[}\PY{n}{df}\PY{p}{[}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{episode}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]} \PY{o}{\PYZlt{}}\PY{o}{=} \PY{l+m+mi}{500}\PY{p}{]} \PY{c+c1}{\PYZsh{} change later with more data}
+         \PY{n}{df\PYZus{}plot} \PY{o}{=} \PY{n}{df\PYZus{}plot}\PY{p}{[}\PY{n}{df\PYZus{}plot}\PY{p}{[}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{algorithm}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]}\PY{o}{.}\PY{n}{isin}\PY{p}{(}\PY{n}{prio}\PY{p}{)}\PY{p}{]}
+         
+         \PY{n}{plt}\PY{o}{.}\PY{n}{figure}\PY{p}{(}\PY{n}{figsize}\PY{o}{=}\PY{p}{(}\PY{l+m+mi}{16}\PY{p}{,}\PY{l+m+mi}{7}\PY{p}{)}\PY{p}{)}
+         \PY{n}{sns}\PY{o}{.}\PY{n}{lineplot}\PY{p}{(}\PY{n}{x}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{episode}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{y}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{reward}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{hue}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{algorithm}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{data}\PY{o}{=}\PY{n}{df\PYZus{}plot}\PY{p}{,} \PY{n}{legend}\PY{o}{=}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{brief}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+         \PY{n}{plt}\PY{o}{.}\PY{n}{savefig}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{rewards\PYZhy{}priodqn.png}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{dpi}\PY{o}{=}\PY{l+m+mi}{200}\PY{p}{,} \PY{n}{bbox\PYZus{}inches}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{tight}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
+\end{Verbatim}
+
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+/home/lucas/.conda/envs/marlo/lib/python3.6/site-packages/scipy/stats/stats.py:1713: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  return np.add.reduce(sorted[indexer] * weights, axis=axis) / sumval
+
+    \end{Verbatim}
+
+    \begin{center}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{output_21_1.png}
+    \end{center}
+    { \hspace*{\fill} \\}
+    
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}100}]:} \PY{n}{df\PYZus{}plot} \PY{o}{=} \PY{n}{df}\PY{p}{[}\PY{n}{df}\PY{p}{[}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{episode}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]} \PY{o}{\PYZlt{}}\PY{o}{=} \PY{l+m+mi}{500}\PY{p}{]} \PY{c+c1}{\PYZsh{} change later with more data}
+          \PY{n}{df\PYZus{}plot} \PY{o}{=} \PY{n}{df\PYZus{}plot}\PY{p}{[}\PY{n}{df\PYZus{}plot}\PY{p}{[}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{algorithm}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]}\PY{o}{.}\PY{n}{isin}\PY{p}{(}\PY{n}{prio}\PY{p}{)}\PY{p}{]}
+          
+          \PY{n}{plt}\PY{o}{.}\PY{n}{figure}\PY{p}{(}\PY{n}{figsize}\PY{o}{=}\PY{p}{(}\PY{l+m+mi}{16}\PY{p}{,}\PY{l+m+mi}{7}\PY{p}{)}\PY{p}{)}
+          \PY{n}{sns}\PY{o}{.}\PY{n}{lineplot}\PY{p}{(}\PY{n}{x}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{episode}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{y}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{reward}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{hue}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{algorithm}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{data}\PY{o}{=}\PY{n}{df\PYZus{}plot}\PY{p}{,} \PY{n}{legend}\PY{o}{=}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{brief}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{n}{estimator}\PY{o}{=}\PY{n}{np}\PY{o}{.}\PY{n}{median}\PY{p}{)}
+          \PY{n}{plt}\PY{o}{.}\PY{n}{savefig}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{rewards\PYZhy{}priodqn.png}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{dpi}\PY{o}{=}\PY{l+m+mi}{200}\PY{p}{,} \PY{n}{bbox\PYZus{}inches}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{tight}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
+\end{Verbatim}
+
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+/home/lucas/.conda/envs/marlo/lib/python3.6/site-packages/scipy/stats/stats.py:1713: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  return np.add.reduce(sorted[indexer] * weights, axis=axis) / sumval
+
+    \end{Verbatim}
+
+    \begin{center}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{output_22_1.png}
+    \end{center}
+    { \hspace*{\fill} \\}
+    
+
+    % Add a bibliography block to the postdoc
+    
+    
+    
+    \end{document}
