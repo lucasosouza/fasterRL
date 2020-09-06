@@ -1,5 +1,5 @@
-import sys
-sys.path.append("../../")
+
+
 
 # remove warnings
 #import warnings
@@ -8,7 +8,7 @@ import gym
 gym.logger.set_level(40)
 
 
-from fasterRL.common.experiment import MultiAgentExperiment
+from fasterrl.common.experiment import MultiAgentExperiment
 
 params = {
     "PLATFORM": "malmo",
@@ -32,7 +32,7 @@ params = {
     "EXPERIENCE_BUFFER_SIZE": 10000, # 5000
     "GRADIENT_CLIPPING": False,
     "DOUBLE_QLEARNING": True,
-    "SOFT_UPDATE": True, 
+    "SOFT_UPDATE": True,
     "SOFT_UPDATE_TAU": 5e-3,
     "REWARD_SCALING_FACTOR": 1e-3,
     "PREFILL_BUFFER": False,
@@ -42,8 +42,8 @@ params = {
 # add prioritized replay
 new_params = {
     "PRIORITIZED_REPLAY": True,
-    "PRIO_REPLAY_ALPHA": 0.6,  
-    "PRIO_REPLAY_BETA_START": 0.4,   
+    "PRIO_REPLAY_ALPHA": 0.6,
+    "PRIO_REPLAY_BETA_START": 0.4,
     "PRIO_REPLAY_BETA_FRAMES": 10000,
 }
 params.update(new_params)
@@ -72,9 +72,9 @@ options = [
 for option in options:
     params.update(option)
     exp = MultiAgentExperiment(params)
-    res = exp.run()        
+    res = exp.run()
     print("Average episodes {:.2f}, {:.2f} for option {}".format(
-        res[0], res[1], option))    
+        res[0], res[1], option))
 
 # multiagent ok
 # multiagent with experience sharing ok

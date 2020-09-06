@@ -1,4 +1,4 @@
-from time import time # should move import from here?
+from time import time
 from tensorboardX import SummaryWriter
 import os
 import numpy as np
@@ -6,9 +6,9 @@ from termcolor import colored
 import json
 
 class ExperimentLogger():
-    """ 
+    """
         Logger that keeps track of metrics per trial
-        - episodes taken for completion 
+        - episodes taken for completion
         - average rewards
         - average steps
         - number of experiences shared
@@ -18,7 +18,7 @@ class ExperimentLogger():
     """
 
     def __init__(self, local_log_path):
-        pass 
+        pass
 
         # creates a list of metrics for every trial
         self.average_rewards = []
@@ -28,7 +28,7 @@ class ExperimentLogger():
         self.execution_times = []
 
         # directory to save data
-        self.log_path = local_log_path 
+        self.log_path = local_log_path
 
     def update(self, time_spent, episodes, avg_reward, avg_steps, exp_received=0):
         """ Update values """
@@ -50,7 +50,7 @@ class ExperimentLogger():
         local_log = {
             "average_rewards": self.average_rewards,
             "average_steps": self.average_steps,
-            "execution_times": self.execution_times, 
+            "execution_times": self.execution_times,
             "episodes_to_complete": self.episodes_to_complete,
             "experiences_received": self.experiences_received
         }
@@ -93,7 +93,7 @@ class BaseLogger():
         self.agent = agent
 
         # initialize writers
-        trial_dir = "".join([agent.alias, "-trial", str(trial)])            
+        trial_dir = "".join([agent.alias, "-trial", str(trial)])
         self.writer = SummaryWriter(log_dir=os.path.join(log_dir, trial_dir))
 
     def cprint(self, content):
@@ -129,7 +129,7 @@ class BaseLogger():
     def log_step(self):
 
         # convert reward back to original scale
-        self.step_reward = self.agent.step_reward 
+        self.step_reward = self.agent.step_reward
         if self.reward_scaling_factor:
             self.step_reward /= self.reward_scaling_factor
 
@@ -157,7 +157,7 @@ class BaseLogger():
         episode_speed = time() - self.episode_start
         self.episode_count += 1
         self.rewards.append(self.episode_reward)
-        self.steps.append(self.steps_count)        
+        self.steps.append(self.steps_count)
 
         if self.log_level > 1 :
 
@@ -166,10 +166,10 @@ class BaseLogger():
 
             if self.episode_count % self.reporting_interval == 0:
                 self.cprint("Episode {} | Avg Reward: {:.2f} | Running Mean: {:.2f} | Avg Steps: {:.2f} | Ep.Speed: {:.2f} sec/ep | Steps p/s {:.2f} | Total steps: {}".format(
-                    self.episode_count, 
-                    np.mean(self.rewards[-self.reporting_interval:]), 
-                    np.mean(self.rewards[-self.number_episodes_mean:]), 
-                    np.mean(self.steps[-self.reporting_interval:]), 
+                    self.episode_count,
+                    np.mean(self.rewards[-self.reporting_interval:]),
+                    np.mean(self.rewards[-self.number_episodes_mean:]),
+                    np.mean(self.steps[-self.reporting_interval:]),
                     episode_speed,
                     steps_per_second,
                     self.total_steps_count))
@@ -200,7 +200,7 @@ class WinLogger(BaseLogger):
         if "MEAN_REWARD_BOUND" in params:
             self.mean_reward_bound = params["MEAN_REWARD_BOUND"]
         else:
-            print("Until win requires a MEAN_REWARD_BOUND to be defined")            
+            print("Until win requires a MEAN_REWARD_BOUND to be defined")
 
         if "NUMBER_EPISODES_MEAN" in params:
             self.number_episodes_mean = params["NUMBER_EPISODES_MEAN"]
@@ -309,7 +309,7 @@ class A2CLogger(WinLogger):
             self.writer.add_scalar("grad/l2", grad_l2, self.episode_count)
             self.writer.add_scalar("grad/max", grad_max, self.episode_count)
             self.writer.add_scalar("grad/var", grad_var, self.episode_count)
-            
+
             # log the losses
             self.writer.add_scalar("loss/policy", self.agent.loss_policy_v, self.episode_count)
             self.writer.add_scalar("loss/value", self.agent.loss_value_v, self.episode_count)
@@ -341,7 +341,7 @@ class StepLogger(WinLogger):
             print("In step {}".format(self.steps_count)
                 )
 
-""" 
+"""
 to log in future implementations
 
 to initialize later
@@ -354,7 +354,7 @@ to initialize later
 
 # initialize history - will coment out for now
 # self.hist_rewards = []
-# self.hist_steps = [] 
+# self.hist_steps = []
 
 
 neural network

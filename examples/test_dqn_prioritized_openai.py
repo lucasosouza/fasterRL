@@ -1,7 +1,7 @@
-import sys
-sys.path.append("../../")
 
-from fasterRL.common.experiment import UntilWinExperiment, MultiAgentExperiment
+
+
+from fasterrl.common.experiment import UntilWinExperiment, MultiAgentExperiment
 
 params = {
     "PLATFORM": "openai",
@@ -24,11 +24,11 @@ params = {
     "EXPERIENCE_BUFFER_SIZE": 50000, # increased from 5000 to 50000
     "GRADIENT_CLIPPING": False,
     "DOUBLE_QLEARNING": True,
-    "SOFT_UPDATE": True, 
+    "SOFT_UPDATE": True,
     "SOFT_UPDATE_TAU": 5e-3,
     "PRIORITIZED_REPLAY": True,
-    "PRIO_REPLAY_ALPHA": 0.6,  
-    "PRIO_REPLAY_BETA_START": 0.4,   
+    "PRIO_REPLAY_ALPHA": 0.6,
+    "PRIO_REPLAY_BETA_START": 0.4,
     "PRIO_REPLAY_BETA_FRAMES": 10000,
 }
 

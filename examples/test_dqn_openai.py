@@ -1,7 +1,7 @@
-import sys
-sys.path.append("../../")
 
-from fasterRL.common.experiment import UntilWinExperiment
+
+
+from fasterrl.common.experiment import UntilWinExperiment
 
 """
     LOG LEVELS:
@@ -34,14 +34,14 @@ params = {
     "EXPERIENCE_BUFFER_SIZE": 5000,
     "GRADIENT_CLIPPING": False,
     "DOUBLE_QLEARNING": True,
-    "SOFT_UPDATE": True, 
-    "SOFT_UPDATE_TAU": 5e-3 
+    "SOFT_UPDATE": True,
+    "SOFT_UPDATE_TAU": 5e-3
 }
 
 new_params = {
     "REPORTING_INTERVAL": 10,
     "LOG_LEVEL": 2,
-    "NUMBER_EPISODES_MEAN": 10,    
+    "NUMBER_EPISODES_MEAN": 10,
     "MEAN_REWARD_BOUND": 195,
     "EPSILON_DECAY_LAST_FRAME": 10000,
     "EPSILON_START": 1.0,

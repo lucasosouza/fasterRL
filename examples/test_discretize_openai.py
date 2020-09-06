@@ -1,7 +1,7 @@
-import sys
-sys.path.append("../../")
 
-from fasterRL.common.experiment import UntilWinExperiment
+
+
+from fasterrl.common.experiment import UntilWinExperiment
 
 # "ENV_NAME": "CartPole-v0",
 params = {
@@ -29,7 +29,7 @@ params = {
 exp = UntilWinExperiment(params)
 exp.run()
 
-# OVERALL 
+# OVERALL
 
 # with more exploration it starts to learn
 # would need a non linear decay on epsilon to be able to stay a long time at a low epsilon rate
@@ -41,7 +41,7 @@ exp.run()
 # bin size too little (<=5) and too much (>=30), agent does not learn
 # best results with 10
 
-# how much sampling is done to define the bins also affect performance. <=100 less is too little, about 1000 already seem optimal. 
+# how much sampling is done to define the bins also affect performance. <=100 less is too little, about 1000 already seem optimal.
 
 # COMPARISON with discretization
 

@@ -3,9 +3,9 @@ Experiment:
 test multiple number of agents
 """
 
-import sys
-sys.path.append("../../")
-from fasterRL.common.experiment import UntilWinExperiment, MultiAgentExperiment
+
+
+from fasterrl.common.experiment import UntilWinExperiment, MultiAgentExperiment
 from math import ceil
 
 exp_group = __file__[:-3]
@@ -38,14 +38,14 @@ dqn = {
     "EXPERIENCE_BUFFER_SIZE": 20000,
     "GRADIENT_CLIPPING": False,
     "DOUBLE_QLEARNING": True,
-    "SOFT_UPDATE": True, 
+    "SOFT_UPDATE": True,
     "SOFT_UPDATE_TAU": 5e-3,
 }
 
 # prio = {
 #     "PRIORITIZED_REPLAY": True,
-#     "PRIO_REPLAY_ALPHA": 0.6,  
-#     "PRIO_REPLAY_BETA_START": 0.4,   
+#     "PRIO_REPLAY_ALPHA": 0.6,
+#     "PRIO_REPLAY_BETA_START": 0.4,
 #     "PRIO_REPLAY_BETA_FRAMES": 10000,
 # }
 
@@ -56,7 +56,7 @@ sharing = {
     "NUM_AGENTS": 2,
     "SHARE_BATCH_SIZE": 128,
     "SHARING": True,
-    "NUM_TRIALS": ceil(NUM_SAMPLES/2),  
+    "NUM_TRIALS": ceil(NUM_SAMPLES/2),
 }
 
 dqn_sharing = dqn.copy()
@@ -64,7 +64,7 @@ dqn_sharing.update(sharing)
 
 focus = {
     "FOCUSED_SHARING": True,
-    "FOCUSED_SHARING_THRESHOLD": 10,    
+    "FOCUSED_SHARING_THRESHOLD": 10,
 }
 
 dqn_focus_sharing = dqn_sharing.copy()

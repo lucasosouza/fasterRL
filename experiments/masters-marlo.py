@@ -1,7 +1,7 @@
-import sys
-sys.path.append("../../")
 
-from fasterRL.common.experiment import UntilWinExperiment, MultiAgentExperiment
+
+
+from fasterrl.common.experiment import UntilWinExperiment, MultiAgentExperiment
 
 exp_group = __file__[:-3]
 NUM_SAMPLES = 30
@@ -29,7 +29,7 @@ dqn = {
     "EXPERIENCE_BUFFER_SIZE": 10000, # 5000
     "GRADIENT_CLIPPING": False,
     "DOUBLE_QLEARNING": True,
-    "SOFT_UPDATE": True, 
+    "SOFT_UPDATE": True,
     "SOFT_UPDATE_TAU": 5e-3,
     "PREFILL_BUFFER": False, # not to be used always
     "DEVICE": "cuda",
@@ -39,8 +39,8 @@ dqn = {
 
 prio = {
     "PRIORITIZED_REPLAY": True,
-    "PRIO_REPLAY_ALPHA": 0.6,  
-    "PRIO_REPLAY_BETA_START": 0.4,   
+    "PRIO_REPLAY_ALPHA": 0.6,
+    "PRIO_REPLAY_BETA_START": 0.4,
     "PRIO_REPLAY_BETA_FRAMES": 10000,
 }
 
@@ -51,7 +51,7 @@ sharing = {
     "NUM_AGENTS": 2,
     "SHARE_BATCH_SIZE": 128,
     "SHARING": True,
-    "NUM_TRIALS": int(NUM_SAMPLES/2),  
+    "NUM_TRIALS": int(NUM_SAMPLES/2),
 }
 
 dqn_sharing = dqn.copy()
@@ -59,7 +59,7 @@ dqn_sharing.update(sharing)
 
 focus = {
     "FOCUSED_SHARING": True,
-    "FOCUSED_SHARING_THRESHOLD": 5,    
+    "FOCUSED_SHARING_THRESHOLD": 5,
 }
 
 dqn_focus_sharing = dqn_sharing.copy()

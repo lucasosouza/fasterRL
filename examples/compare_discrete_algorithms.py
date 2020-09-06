@@ -1,7 +1,7 @@
-import sys
-sys.path.append("../../")
 
-from fasterRL.common.experiment import BaseExperiment, UntilWinExperiment
+
+
+from fasterrl.common.experiment import BaseExperiment, UntilWinExperiment
 
 # "ENV_NAME": "CartPole-v0",
 params = {
@@ -36,7 +36,7 @@ for method, result in zip(methods, results):
 
 # Results, using all same parameters:
 # For "FrozenLakeNotSlippery-v0"
-# 
+#
 # Method QLearning took an average of 321.20 episodes
 # Method Sarsa took an average of 500.53 episodes
 # Method FirstVisitMonteCarlo took an average of 341.27 episodes

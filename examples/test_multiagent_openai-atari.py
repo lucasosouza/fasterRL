@@ -1,7 +1,7 @@
-import sys
-sys.path.append("../../")
 
-from fasterRL.common.experiment import MultiAgentExperiment
+
+
+from fasterrl.common.experiment import MultiAgentExperiment
 
 params = {
     "PLATFORM": "openai-atari",
@@ -25,8 +25,8 @@ params = {
     "EXPERIENCE_BUFFER_SIZE": 5000,
     "GRADIENT_CLIPPING": False,
     "DOUBLE_QLEARNING": True,
-    "SOFT_UPDATE": True, 
-    "SOFT_UPDATE_TAU": 5e-3 
+    "SOFT_UPDATE": True,
+    "SOFT_UPDATE_TAU": 5e-3
 }
 
 # test for focused sharing

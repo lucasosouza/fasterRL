@@ -1,5 +1,5 @@
-from .base_agent import ValueBasedAgent
-from fasterRL.common.buffer import TransitionBuffer, Experience
+from fasterrl.agents.base_agent import ValueBasedAgent
+from fasterrl.common.buffer import TransitionBuffer, Experience
 import numpy as np
 from time import sleep
 
@@ -82,7 +82,7 @@ class TDLearning(ValueBasedAgent):
 
         if self.with_tiles:
             for idx, s in enumerate(state):
-                self.qtable[idx][s][action] = self.qtable[idx][s][action] + step_value       
+                self.qtable[idx][s][action] = self.qtable[idx][s][action] + step_value
         else:
             self.qtable[state][action] = self.qtable[state][action] + step_value
 
@@ -111,12 +111,12 @@ class TDLearning(ValueBasedAgent):
     def update_qtable(self, state, action, reward, done, next_state):
 
         # calculate td_target
-        if not done:        
+        if not done:
             next_action = self.select_next_action(next_state)
             td_target = reward + self.gamma * self.get_qvalue(next_state, next_action)
         else:
-            td_target = reward            
-            
+            td_target = reward
+
         # update q-table
         td_error = td_target - self.get_qvalue(state, action)
         self.update_qvalue(state, action, self.learning_rate * td_error)
@@ -144,8 +144,8 @@ class NStepsTDLearning(TDLearning):
     def learn(self, action, next_state, reward, done):
 
         experience = Experience(self.state, action, reward, done, next_state)
-        self.buffer.append(experience)        
- 
+        self.buffer.append(experience)
+
         # regular step, if not done and buffer full
         if not done and self.buffer.full():
             transitions = self.buffer.all()
@@ -179,7 +179,7 @@ class NStepsTDLearning(TDLearning):
             if self.importance_sampling:
                 importance_sampling = self.calculate_importance_sampling(transitions)
                 if self.sampling_per_decision:
-                    """ 
+                    """
                         Note: implementation of per decision is based on my understanding and derivation of the theory covered in Sutton book 7.4. Need to verify math. Results are not good
                     """
                     p1 = ret * importance_sampling
@@ -191,7 +191,7 @@ class NStepsTDLearning(TDLearning):
 
             reward += ret
 
-        return state, action, reward, done, next_state  
+        return state, action, reward, done, next_state
 
     def calculate_importance_sampling(self, transitions):
 
@@ -202,7 +202,7 @@ class NStepsTDLearning(TDLearning):
 
         importance_sampling = np.product(importance_sampling_v)
 
-        return importance_sampling  
+        return importance_sampling
 
     def step_importance_sampling(self, state, action):
         """ Calculate importance sampling considering an e-greedy behavior policy

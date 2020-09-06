@@ -1,7 +1,7 @@
-from .base_agent import ValueBasedAgent
-from fasterRL.common.network import *
-from fasterRL.common.buffer import *
-from fasterRL.common.multiagent_buffer import *
+from fasterrl.agents.base_agent import ValueBasedAgent
+from fasterrl.common.network import *
+from fasterrl.common.buffer import *
+from fasterrl.common.multiagent_buffer import *
 
 import torch
 import torch.optim as optim
@@ -16,7 +16,7 @@ class DQN(ValueBasedAgent):
         device = "cpu"
         if "DEVICE" in params:
             device = params["DEVICE"]
-        self.device = torch.device(device)        
+        self.device = torch.device(device)
 
         self.experience_buffer_size = 1000
         if "EXPERIENCE_BUFFER_SIZE" in params:
@@ -52,7 +52,7 @@ class DQN(ValueBasedAgent):
                 self.soft_update_tau = 5e-3
                 if "SOFT_UPDATE_TAU" in params:
                     self.soft_update_tau = params["SOFT_UPDATE_TAU"]
-        else: 
+        else:
             self.sync_target_frames = 2000
             self.frame_count = 0
             if "SYNC_TARGET_FRAMES" in params:
@@ -85,14 +85,14 @@ class DQN(ValueBasedAgent):
         self.with_tiles = False
         if "WITH_TILES" in params:
             self.with_tiles = params["WITH_TILES"]
- 
+
     def set_environment(self, env):
         super(DQN, self).set_environment(env)
 
         # initialize networks
-        self.net = self.network_type(env.observation_space.shape, env.action_space.n, 
+        self.net = self.network_type(env.observation_space.shape, env.action_space.n,
             random_seed=self.random_seed).to(self.device)
-        self.tgt_net = self.network_type(env.observation_space.shape, env.action_space.n, 
+        self.tgt_net = self.network_type(env.observation_space.shape, env.action_space.n,
             random_seed=self.random_seed).to(self.device)
         self.optimizer = optim.Adam(self.net.parameters(), lr=self.learning_rate)
 
@@ -118,7 +118,7 @@ class DQN(ValueBasedAgent):
 
         # run multiple round until buffer is full. access env directly
         while len(self.buffer) < self.replay_batch_size:
-                    
+
             action = self.env.action_space.sample()
             next_state, reward, done, _ = self.env.step(action)
             self.buffer.append(Experience(self.state, action, reward, done, next_state))
@@ -129,7 +129,7 @@ class DQN(ValueBasedAgent):
             # if done, needs to reset
             if done:
                 self.reset()
-     
+
     def select_best_action(self, state):
 
         q_vals_v = self.calculate_q_vals(state)
@@ -152,7 +152,7 @@ class DQN(ValueBasedAgent):
         # get q values with feed forward
         q_vals_v = self.net(state_v)
 
-        return q_vals_v  
+        return q_vals_v
 
     def learn(self, action, next_state, reward, done):
 
@@ -183,7 +183,7 @@ class DQN(ValueBasedAgent):
         if self.gradient_clipping:
             nn.utils.clip_grad_norm_(self.net.parameters(), self.grad_l2_clip)
         # optimize
-        self.optimizer.step()        
+        self.optimizer.step()
 
     def batch_learn_with_priorities(self, action, next_state, reward, done):
 
@@ -232,9 +232,9 @@ class DQN(ValueBasedAgent):
         ======
             local_model (PyTorch model): weights will be copied from
             target_model (PyTorch model): weights will be copied to
-            tau (float): interpolation parameter 
-        """        
-        
+            tau (float): interpolation parameter
+        """
+
         # iterate through both together and make a copy one by one
         for target_param, local_param in zip(self.tgt_net.parameters(), self.net.parameters()):
             target_param.data.copy_(
@@ -244,7 +244,7 @@ class DQN(ValueBasedAgent):
     def unpack_batch(self, batch):
 
         states, actions, rewards, dones, next_states = batch
-        
+
         # creates tensors. and push them to device, if GPU is available, then uses GPU
         states_v = torch.FloatTensor(states).to(self.device)
         next_states_v = torch.FloatTensor(next_states).to(self.device)
@@ -265,7 +265,7 @@ class DQN(ValueBasedAgent):
         # gather: select only the values for the actions taken
         # result of gather applied to tensor is differentiable operation, keep all gradients w.r.t to final loss value
         state_action_values = self.net(states_v).gather(1, actions_v.unsqueeze(-1)).squeeze(-1) #.to(self.device)
-                        
+
         # apply target network to next_states. get maximum q-value. no need to know the action, just the value
         # if double, get actions from regular network and value from target network
         # avoids overfitting
@@ -274,24 +274,24 @@ class DQN(ValueBasedAgent):
             next_q_vals_v = self.net(next_states_v)
             # chooses greedy action from target net
             _, next_state_action_v = torch.max(next_q_vals_v, dim=1)
-            # gets actions from 
+            # gets actions from
             next_state_values = \
                 self.tgt_net(next_states_v).gather(1, next_state_action_v.unsqueeze(-1)).squeeze(-1) #.to(self.device)
         else:
             next_state_values = self.tgt_net(next_states_v).max(1)[0]
- 
+
         # if is done, value of next state is set to 0. important correction
         next_state_values[done_mask] = 0.0
- 
+
         # detach values from computation graph, to prevent gradients from flowing into neural net
         next_state_values = next_state_values.detach()
-        
+
         # calculate total value (Bellman approximation value)
         expected_state_action_values = (next_state_values * self.gamma + rewards_v).to(self.device)
-        
+
         # calculate mean squared error loss
         loss = nn.MSELoss()(state_action_values, expected_state_action_values)
-        
+
         return loss
 
     def calc_loss_with_priorities(self, batch, batch_weights):
@@ -309,7 +309,7 @@ class DQN(ValueBasedAgent):
             next_q_vals_v = self.net(next_states_v)
             # chooses greedy action from target net
             _, next_state_action_v = torch.max(next_q_vals_v, dim=1)
-            # gets actions from 
+            # gets actions from
             next_state_values = \
                 self.tgt_net(next_states_v).gather(1, next_state_action_v.unsqueeze(-1)).squeeze(-1)
         else:
@@ -319,12 +319,12 @@ class DQN(ValueBasedAgent):
 
         # detach values from computation graph, to prevent gradients from flowing into neural net
         next_state_values = next_state_values.detach()
-        
+
         # calculate total value (Bellman approximation value)
         expected_state_action_values = next_state_values * self.gamma + rewards_v
 
-        #### only here the function starts to change 
-        #### all the remaining preparation is the same 
+        #### only here the function starts to change
+        #### all the remaining preparation is the same
 
         # same MSE loss, but expression is written explicitly
         # allow to apply weights and keep individual loss values for each sample
@@ -337,9 +337,9 @@ class DQN(ValueBasedAgent):
 
 """
 TODO:
-see if I can move everythin related to torch to network 
+see if I can move everythin related to torch to network
 to make it agnostic, if possible
-want to make a test replacing it for a tensorflow network 
+want to make a test replacing it for a tensorflow network
 this should include the soft and hard updates, and the gradient clipping
 
 """

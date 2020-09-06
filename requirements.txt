@@ -1,0 +1,7 @@
+numpy
+torch
+tensorboardX
+termcolor
+scikit-image
+gym
+opencv-python

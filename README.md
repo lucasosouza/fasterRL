@@ -1,10 +1,10 @@
-# fasterRL
+# fasterrl
 
 Library for deep reinforcement learning based on pytorch. Under development.
 
 Future plan includes:
 
-- support to tensorflow 
+- support to tensorflow
 - support for platforms:
     - PyBullet
     - VizDoom
@@ -16,8 +16,11 @@ Future plan includes:
 
 ## Installation
 
-Open `install.sh`, and change the `LOG_DIR` path to where you want to save the experiments data. Run install.sh to create the environment variable `log dir` and the folders structure for logging. 
-(to add: installation as a library + requirements)
+Run `source install.sh`.
+
+This short script will run `python setup.py install`, and source `~/.bashrc` to create the environment variable `FASTERRL_LOGDIR`. This environment variable points to where local temporary files will be saved: logs, results, weights and runs. As default, it is located in the folder `local` at the root of the fasterrl folder. You may redefine to a different path.
+
+To test, run the `python examples/test.py`. You should see the output from the experiment in the console.
 
 ## Use
 
@@ -30,9 +33,8 @@ Requires three steps only:
 Example:
 
 ```
-import sys
-sys.path.append("../")
-from fasterRL.common.experiment import UntilWinExperiment
+
+from fasterrl.common.experiment import UntilWinExperiment
 
 params = {
     "LOG_LEVEL": 2,
@@ -40,7 +42,7 @@ params = {
     "ENV_NAME": "FrozenLake-v0",
     "METHOD": "QLearning",
     "NUMBER_EPISODES_MEAN": 10,
-    "MEAN_REWARD_BOUND": .8,    
+    "MEAN_REWARD_BOUND": .8,
     "REPORTING_INTERVAL": 100,
     "NUM_TRIALS": 3,
     "MAX_EPISODES": 1000,
@@ -85,8 +87,8 @@ Customization options are available for state-of-the-art methods (not full list)
 Allows different levels of logging:
 
 - Step details or episode details as events (for tensorboard)
-- Experiments results as json 
-- Command line outputs 
+- Experiments results as json
+- Command line outputs
 
 Supports platforms:
 
@@ -98,7 +100,7 @@ Supports platforms:
 ## Agents
 
 Each file contains a different class of related algorithms. Whenever possible use of hierarchy is encouraged to avoid code reuse. Modularization, simplicity and self-explainability are preferred over performance.
- 
+
 ## Common
 
 Common classes shared amongst different agents.

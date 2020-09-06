@@ -1,7 +1,7 @@
-import sys
-sys.path.append("../../")
 
-from fasterRL.common.experiment import MultiAgentExperiment
+
+
+from fasterrl.common.experiment import MultiAgentExperiment
 
 params = {
     "PLATFORM": "openai",
@@ -26,4 +26,4 @@ exp = MultiAgentExperiment(params)
 result = exp.run()
 
 
-    
+

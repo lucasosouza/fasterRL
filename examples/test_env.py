@@ -1,7 +1,7 @@
-import sys
-sys.path.append("../../")
 
-from fasterRL.common.environment import *
+
+
+from fasterrl.common.environment import *
 
 params = {}
 params["PLATFORM"] = "openai"

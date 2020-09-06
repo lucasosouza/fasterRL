@@ -1,7 +1,7 @@
-import sys
-sys.path.append("../../")
 
-from fasterRL.common import BaseExperiment, UntilWinExperiment
+
+
+from fasterrl.common import BaseExperiment, UntilWinExperiment
 
 """
     LOG LEVELS:
@@ -27,7 +27,7 @@ params = {
     "MAX_EPISODES": 10000,
     "LEARNING_RATE": 2e-4,
     "GAMMA": 0.99,
-    "ENTROPY_BONUS": True, 
+    "ENTROPY_BONUS": True,
     "ENTROPY_BETA": 0.01,
     "GRADIENT_CLIPPING": True,
     "CLIP_GRAD": 0.1

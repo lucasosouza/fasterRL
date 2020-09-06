@@ -1,7 +1,7 @@
-import sys
-sys.path.append("../../")
 
-from fasterRL.common.experiment import UntilWinExperiment
+
+
+from fasterrl.common.experiment import UntilWinExperiment
 
 # "ENV_NAME": "CartPole-v0",
 params = {
@@ -28,7 +28,7 @@ params = {
 exp = UntilWinExperiment(params)
 exp.run()
 
-# solved the problem using action discretization 
+# solved the problem using action discretization
 # Problem solved in 1839 episodes
 # Trial took 62.19 seconds
 

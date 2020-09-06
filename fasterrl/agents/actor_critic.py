@@ -1,5 +1,5 @@
-from .policy_gradient import Reinforce, MonteCarloReinforce
-from fasterRL.common.network import *
+from fasterrl.agents.policy_gradient import Reinforce, MonteCarloReinforce
+from fasterrl.common.network import *
 
 import torch
 import torch.optim as optim

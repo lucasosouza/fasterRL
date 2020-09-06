@@ -1,10 +1,10 @@
-import sys
-sys.path.append("../../")
+
+
 
 import gym
 gym.logger.set_level(40)
 
-from fasterRL.common.experiment import *
+from fasterrl.common.experiment import *
 
 params = {
     "PLATFORM": "openai",
@@ -28,7 +28,7 @@ params = {
     "EXPERIENCE_BUFFER_SIZE": 10000, # 5000
     "GRADIENT_CLIPPING": False,
     "DOUBLE_QLEARNING": True,
-    "SOFT_UPDATE": True, 
+    "SOFT_UPDATE": True,
     "SOFT_UPDATE_TAU": 5e-3,
     "REWARD_SCALING_FACTOR": 1e-3,
     "PREFILL_BUFFER": False,
@@ -38,8 +38,8 @@ params = {
 # add prioritized replay
 new_params = {
     "PRIORITIZED_REPLAY": True,
-    "PRIO_REPLAY_ALPHA": 0.6,  
-    "PRIO_REPLAY_BETA_START": 0.4,   
+    "PRIO_REPLAY_ALPHA": 0.6,
+    "PRIO_REPLAY_BETA_START": 0.4,
     "PRIO_REPLAY_BETA_FRAMES": 50000,
 }
 params.update(new_params)

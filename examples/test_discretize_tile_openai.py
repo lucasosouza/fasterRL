@@ -1,7 +1,7 @@
-import sys
-sys.path.append("../../")
 
-from fasterRL.common.experiment import UntilWinExperiment
+
+
+from fasterrl.common.experiment import UntilWinExperiment
 import numpy as np
 
 # "ENV_NAME": "CartPole-v0",

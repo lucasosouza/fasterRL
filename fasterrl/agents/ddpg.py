@@ -1,8 +1,8 @@
 # ddpg.py
-from .base_agent import ValueBasedAgent
-from fasterRL.common.network import *
-from fasterRL.common.buffer import Experience, ExperienceBuffer
-from fasterRL.common.exploration import OUNoise
+from fasterrl.agents.base_agent import ValueBasedAgent
+from fasterrl.common.network import *
+from fasterrl.common.buffer import Experience, ExperienceBuffer
+from fasterrl.common.exploration import OUNoise
 
 import torch
 import torch.optim as optim
@@ -18,7 +18,7 @@ class DDPG(ValueBasedAgent):
         device = "cpu"
         if "DEVICE" in params:
             device = params["DEVICE"]
-        self.device = torch.device(device)                
+        self.device = torch.device(device)
 
         experience_buffer_size = 1000
         if "EXPERIENCE_BUFFER_SIZE" in params:
@@ -71,15 +71,15 @@ class DDPG(ValueBasedAgent):
                 self.soft_update_tau = 5e-3
                 if "SOFT_UPDATE_TAU" in params:
                     self.soft_update_tau = params["SOFT_UPDATE_TAU"]
-        else: 
+        else:
             self.sync_target_frames = 2000
             self.frame_count = 0
             if "SYNC_TARGET_FRAMES" in params:
-                self.sync_target_frames = params["SYNC_TARGET_FRAMES"]                    
+                self.sync_target_frames = params["SYNC_TARGET_FRAMES"]
 
         # initialize experience buffer
         self.buffer = ExperienceBuffer(experience_buffer_size)
- 
+
     def set_environment(self, env):
 
         self.env = env
@@ -90,14 +90,14 @@ class DDPG(ValueBasedAgent):
         self.action_upper_bounds = self.env.action_space.high
 
         # initialize networks
-        self.net_actor = DDPGActor(env.observation_space.shape, env.action_space, 
+        self.net_actor = DDPGActor(env.observation_space.shape, env.action_space,
             device=self.device, random_seed=self.random_seed).to(self.device)
-        self.tgtnet_actor = DDPGActor(env.observation_space.shape, env.action_space, 
+        self.tgtnet_actor = DDPGActor(env.observation_space.shape, env.action_space,
             device=self.device, random_seed=self.random_seed).to(self.device)
 
-        self.net_critic = DDPGCritic(env.observation_space.shape, env.action_space.shape, 
+        self.net_critic = DDPGCritic(env.observation_space.shape, env.action_space.shape,
             device=self.device, random_seed=self.random_seed).to(self.device)
-        self.tgtnet_critic = DDPGCritic(env.observation_space.shape, env.action_space.shape, 
+        self.tgtnet_critic = DDPGCritic(env.observation_space.shape, env.action_space.shape,
             device=self.device, random_seed=self.random_seed).to(self.device)
 
         self.actor_optimizer = optim.Adam(self.net_actor.parameters(), lr=self.learning_rate)
@@ -133,7 +133,7 @@ class DDPG(ValueBasedAgent):
     def unpack_batch(self, batch):
 
         states, actions, rewards, dones, next_states = batch
-        
+
         # creates tensors. and push them to device, if GPU is available, then uses GPU
         states_v = torch.FloatTensor(states).to(self.device)
         next_states_v = torch.FloatTensor(next_states).to(self.device)
@@ -167,7 +167,7 @@ class DDPG(ValueBasedAgent):
             next_actions_v = self.tgtnet_actor(next_states_v)
             next_qvalues_v = self.tgtnet_critic(next_states_v, next_actions_v)
             # make next values 0 if episode is done
-            next_qvalues_v[done_mask] = 0.0 
+            next_qvalues_v[done_mask] = 0.0
 
             # calculated expected state action values
             expected_qvalues_v = rewards_v.unsqueeze(dim=-1) + next_qvalues_v * self.gamma
@@ -220,9 +220,9 @@ class DDPG(ValueBasedAgent):
         ======
             local_model (PyTorch model): weights will be copied from
             target_model (PyTorch model): weights will be copied to
-            tau (float): interpolation parameter 
-        """        
-        
+            tau (float): interpolation parameter
+        """
+
         # iterate through both together and make a copy one by one
         # for actor
         for target_param, local_param in zip(self.tgtnet_actor.parameters(), self.net_actor.parameters()):

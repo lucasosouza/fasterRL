@@ -1,9 +1,9 @@
-from .buffer import *
+from fasterrl.common.buffer import *
 
 class ExperienceBufferGrid(ExperienceBuffer):
-    
+
     def __init__(self, capacity):
-    
+
         # uses a list instead
         self.buffer = []
         self.capacity = capacity
@@ -28,7 +28,7 @@ class ExperienceBufferGrid(ExperienceBuffer):
         if not self.with_tiles:
             for pos in self.discretizer.calculate_grid_positions(action_size):
                 self.grid_experiences[pos] = []
-        # for tiles, need to add an extra dimension 
+        # for tiles, need to add an extra dimension
         else:
             for t in range(num_tiles):
                 for pos in self.discretizer.calculate_grid_positions(action_size):
@@ -49,7 +49,7 @@ class ExperienceBufferGrid(ExperienceBuffer):
             # in tiles, position is an array of tuples instead of a single tuple
             position = [s + (action, ) for s in state]
 
-        return position        
+        return position
 
     def identify_unexplored(self, threshold):
 
@@ -88,7 +88,7 @@ class ExperienceBufferGrid(ExperienceBuffer):
 
 
     def append(self, experience):
-        """ Adds to grid as well as appending to buffer. Remove if buffer full """ 
+        """ Adds to grid as well as appending to buffer. Remove if buffer full """
 
         # adds to buffer, based on rotating queue
         if len(self.buffer) < self.capacity:
@@ -98,7 +98,7 @@ class ExperienceBufferGrid(ExperienceBuffer):
             # identify experience to remove
             experience_to_delete = self.buffer[self.pos]
             # remove from the grid
-            self.remove_from_grid(experience_to_delete)    
+            self.remove_from_grid(experience_to_delete)
             # overwrite last position
             self.buffer[self.pos] = experience
 
@@ -113,7 +113,7 @@ class ExperienceBufferGrid(ExperienceBuffer):
     def select_batch_with_mask(self, batch_size, mask):
         """ Sample from experience batch based on predetermined rules.
         Main 'meat' from the class is in this method """
-        
+
         # filter only relevant experiences
         selected_experiences = reduce(lambda x,y: x+y, list(self.grid_experiences[mask]))
 
@@ -125,7 +125,7 @@ class ExperienceBufferGrid(ExperienceBuffer):
             # select indices
             indices = np.random.choice(len(selected_experiences), selected_batch_size, replace=False)
             # added [0] to get experience out of tuple
-            return [selected_experiences[idx][0] for idx in indices] 
+            return [selected_experiences[idx][0] for idx in indices]
 
         # else return an empty array to standardize output
         else:
@@ -145,7 +145,7 @@ class PrioExperienceBufferGrid(PrioReplayBuffer, ExperienceBufferGrid):
             # otherwise overwrite last position
             experience_to_delete = self.buffer[self.pos]
             # rewrites the new
-            self.buffer[self.pos] = experience     
+            self.buffer[self.pos] = experience
             # calculate position
             self.remove_from_grid(experience_to_delete)
 
@@ -159,7 +159,7 @@ class PrioExperienceBufferGrid(PrioReplayBuffer, ExperienceBufferGrid):
     def select_batch_with_mask(self, batch_size, mask):
         """ Sample from experience batch based on predetermined rules.
         Main 'meat' from the class is in this method """
-        
+
         # filter only relevant experiences
         selected_experiences = reduce(lambda x,y: x+y, list(self.grid_experiences[mask]))
         selected_batch_size = min(batch_size, len(selected_experiences))
@@ -173,7 +173,7 @@ class PrioExperienceBufferGrid(PrioReplayBuffer, ExperienceBufferGrid):
             probs = prios ** self.prob_alpha
             probs /= probs.sum()
 
-            # with probabilities, sample from selected experiences 
+            # with probabilities, sample from selected experiences
             final_indices = np.random.choice(len(selected_experiences), batch_size, p=probs)
             return [selected_experiences[idx][0] for idx in final_indices]
 

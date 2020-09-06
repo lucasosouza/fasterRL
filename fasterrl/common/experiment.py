@@ -1,6 +1,6 @@
-from fasterRL.agents import *
-from fasterRL.common.logger import *
-from fasterRL.common.environment import *
+from fasterrl.agents import *
+from fasterrl.common.logger import *
+from fasterrl.common.environment import *
 
 import os
 from datetime import datetime
@@ -21,10 +21,7 @@ class BaseExperiment:
         ### Set experiment path
 
         # identify log directory
-        if "LOG_DIR" in os.environ:
-            log_root = os.environ["LOG_DIR"]
-        else:
-            log_root = "./"
+        log_root = os.environ["FASTERRL_LOGDIR"]
 
         # create an ID for the experiment
         now = datetime.strftime(datetime.now(), "%Y%m%d-%H%M%S-%f")[:-4]

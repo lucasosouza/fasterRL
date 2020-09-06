@@ -1,7 +1,7 @@
-import sys
-sys.path.append("../../")
 
-from fasterRL.common.experiment import MultiAgentExperiment
+
+
+from fasterrl.common.experiment import MultiAgentExperiment
 
 params = {
     "PLATFORM": "malmo",
@@ -25,15 +25,15 @@ params = {
     "EXPERIENCE_BUFFER_SIZE": 5000,
     "GRADIENT_CLIPPING": False,
     "DOUBLE_QLEARNING": True,
-    "SOFT_UPDATE": True, 
+    "SOFT_UPDATE": True,
     "SOFT_UPDATE_TAU": 5e-3,
     "NUM_AGENTS": 2,
 	"SHARE_BATCH_SIZE": 128,
 	"FOCUSED_SHARING": True,
 	"FOCUSED_SHARING_THRESHOLD": 3,
     "PRIORITIZED_REPLAY": True,
-    "PRIO_REPLAY_ALPHA": 0.6,  
-    "PRIO_REPLAY_BETA_START": 0.4,   
+    "PRIO_REPLAY_ALPHA": 0.6,
+    "PRIO_REPLAY_BETA_START": 0.4,
     "PRIO_REPLAY_BETA_FRAMES": 10000,
 }
 
@@ -41,11 +41,11 @@ sharings = [True]
 for sharing in sharings:
     params["FOCUSED_SHARING"] = sharing
     exp = MultiAgentExperiment(params)
-    result = exp.run()        
+    result = exp.run()
     print("Sharing: {}".format(sharing))
     for idx_a, res in enumerate(result):
         print("Method {} took an average of {:.2f} episodes for agent {}".format(
-            params["METHOD"], res, idx_a))    
+            params["METHOD"], res, idx_a))
 
 
 # running

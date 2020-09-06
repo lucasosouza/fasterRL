@@ -1,7 +1,7 @@
-import sys
-sys.path.append("../../")
 
-from fasterRL.common.experiment import BaseExperiment, UntilWinExperiment
+
+
+from fasterrl.common.experiment import BaseExperiment, UntilWinExperiment
 
 params = {
     "PLATFORM": "openai",
@@ -14,14 +14,14 @@ params = {
     "MAX_EPISODES": 2000,
     "LEARNING_RATE": 2e-4,
     "GAMMA": 0.99,
-    "SOFT_UPDATE": True, 
-    "SOFT_UPDATE_TAU": 5e-3,    
+    "SOFT_UPDATE": True,
+    "SOFT_UPDATE_TAU": 5e-3,
     "OU_EXPLORATION": True,
     "OU_MU": 0.0,
     "OU_THETA": 0.15,
     "OU_SIGMA": 0.2,
     "OU_EPSILON": 1.0,
-    "DEVICE": 'cuda'    
+    "DEVICE": 'cuda'
 }
 
 # test for mountain car

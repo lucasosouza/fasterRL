@@ -2,15 +2,27 @@ import numpy as np
 from collections import namedtuple, deque
 from functools import reduce
 
+__all__ = [
+    "Experience",
+    "Transition",
+    "ShortExperience",
+    "Episode",
+    "TransitionBuffer",
+    "MCTransitionBuffer",
+    "ExperienceBuffer",
+    "EpisodeBuffer",
+    "PrioReplayBuffer"
+]
+
 # need to better organize this log of experience, transition, etc
 
-Experience = namedtuple('Experience', 
+Experience = namedtuple('Experience',
     field_names=['state', 'action', 'reward', 'done', 'next_state'])
 
-Transition = namedtuple('Transition', 
+Transition = namedtuple('Transition',
     field_names=['state', 'action', 'reward'])
 
-ShortExperience = namedtuple('ShortExperience', 
+ShortExperience = namedtuple('ShortExperience',
     field_names=['state', 'action'])
 
 Episode = namedtuple('Episode',
@@ -92,14 +104,14 @@ class MCTransitionBuffer:
                     yield state, action, value
 
 class ExperienceBuffer:
-    
+
     def __init__(self, capacity):
         # initializes a deque
         self.buffer = deque(maxlen=capacity)
-        
+
     def __len__(self):
         return len(self.buffer)
-    
+
     def receive(self, experiences):
         """ Receive and append a batch of experience. """
 
@@ -109,7 +121,7 @@ class ExperienceBuffer:
     def append(self, experience):
         self.buffer.append(experience)
 
-    def select_batch(self, batch_size): 
+    def select_batch(self, batch_size):
 
         # restrict to number of experiences available
         batch_size = min(batch_size, len(self.buffer))
@@ -118,11 +130,11 @@ class ExperienceBuffer:
         indices = np.random.choice(len(self.buffer), batch_size, replace=False)
 
         return [self.buffer[idx] for idx in indices]
-        
+
     def sample(self, batch_size):
         """ Sample from experience batch based on predetermined rules.
         Main 'meat' from the class is in this method """
-                
+
         batch = self.select_batch(batch_size)
 
         # break down into one tuple per variable of the experience
@@ -161,9 +173,9 @@ class EpisodeBuffer:
         return False
 
     def sample(self):
-        """ Select top episodes to run """        
+        """ Select top episodes to run """
 
-        # get mean of rewards 
+        # get mean of rewards
         rewards = list(map(lambda ep:ep.reward, self.buffer))
         self.reward_bound = np.percentile(rewards, self.cutoff_percentile)
         self.reward_mean = np.mean(rewards)
@@ -178,7 +190,7 @@ class EpisodeBuffer:
         # zero buffer to restart
         self.buffer = []
 
-        # still an issue here - why actions are a long tensor, while action scores are a list? 
+        # still an issue here - why actions are a long tensor, while action scores are a list?
         # need to look into this
         # return as tensors for learning
         return np.array(states), np.array(actions)
@@ -189,7 +201,7 @@ class PrioReplayBuffer(ExperienceBuffer):
 
     def __init__(self, capacity, prob_alpha=0.6):
 
-        self.prob_alpha = prob_alpha  
+        self.prob_alpha = prob_alpha
         self.capacity = capacity
         self.pos = 0
         self.buffer = []
@@ -217,7 +229,7 @@ class PrioReplayBuffer(ExperienceBuffer):
         # adjust position - when ends, goes back to zero
         self.pos = (self.pos + 1) % self.capacity
 
-    def select_batch(self, batch_size): 
+    def select_batch(self, batch_size):
         """ Need to similar calculation as in samples, but do not do any updates or calculate weights are needed.
 
             Don't need beta since no importance sampling is done in the method
@@ -266,7 +278,7 @@ class PrioReplayBuffer(ExperienceBuffer):
         """ Update new priorities for the processed batch """
 
         for idx, prio in zip(batch_indices, batch_priorities):
-           self.priorities[idx] = prio            
+           self.priorities[idx] = prio
 
 
 

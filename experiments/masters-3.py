@@ -16,10 +16,10 @@ improve how it is done later
 
 """
 
-import sys
-sys.path.append("../../")
 
-from fasterRL.common.experiment import UntilWinExperiment, MultiAgentExperiment
+
+
+from fasterrl.common.experiment import UntilWinExperiment, MultiAgentExperiment
 
 # tuned based on intuition - not really sure
 
@@ -45,14 +45,14 @@ dqn = {
     "EXPERIENCE_BUFFER_SIZE": 400000, # multiplied by 20
     "GRADIENT_CLIPPING": False,
     "DOUBLE_QLEARNING": True,
-    "SOFT_UPDATE": True, 
+    "SOFT_UPDATE": True,
     "SOFT_UPDATE_TAU": 5e-3,
 }
 
 prio = {
     "PRIORITIZED_REPLAY": True,
-    "PRIO_REPLAY_ALPHA": 0.6,  
-    "PRIO_REPLAY_BETA_START": 0.4,   
+    "PRIO_REPLAY_ALPHA": 0.6,
+    "PRIO_REPLAY_BETA_START": 0.4,
     "PRIO_REPLAY_BETA_FRAMES": 200000, # multiplied by 20
 }
 
@@ -63,7 +63,7 @@ sharing = {
     "NUM_AGENTS": 2,
     "SHARE_BATCH_SIZE": 128,
     "SHARING": True,
-    "NUM_TRIALS": 2,  
+    "NUM_TRIALS": 2,
 }
 
 dqn_sharing = dqn.copy()
@@ -71,7 +71,7 @@ dqn_sharing.update(sharing)
 
 focus = {
     "FOCUSED_SHARING": True,
-    "FOCUSED_SHARING_THRESHOLD": 40, # multiplied by 4 the threshold  
+    "FOCUSED_SHARING_THRESHOLD": 40, # multiplied by 4 the threshold
 }
 
 dqn_focus_sharing = dqn_sharing.copy()

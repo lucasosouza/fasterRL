@@ -1,5 +1,5 @@
-from fasterRL.common.wrapper import *
-from fasterRL.common.discretizer import *
+from fasterrl.common.wrapper import *
+from fasterrl.common.discretizer import *
 import numpy as np
 
 # save expected reward and number of episodes
@@ -10,11 +10,11 @@ solved_requirements = {
 }
 
 class BaseEnv():
-    """    
+    """
     make a class that overwrites the default environment
     and can encapsulate several things here
     environment step
-    here I can consider the diferent environments I can use depending on the platform 
+    here I can consider the diferent environments I can use depending on the platform
     """
 
     def __init__(self, params):
@@ -27,7 +27,7 @@ class BaseEnv():
         if "PLATFORM" in params:
             self.platform = params["PLATFORM"]
 
-        # some code reuse here can be done 
+        # some code reuse here can be done
         if self.platform == "openai":
             import gym
             self.env = gym.make(params["ENV_NAME"])
@@ -173,7 +173,7 @@ class BaseEnv():
         # do rendering, if required
         if self.platform == 'malmo':
             if self.render:
-                self.env.render('human') # specific for minecraft 
+                self.env.render('human') # specific for minecraft
 
         # discretize observation, if required
         if self.discretize_state and not self.passive:
@@ -195,13 +195,13 @@ class BaseEnv():
         # self.env.seed(random_seed)
 
     def configure_gym_marlo(self, env_name):
-        """ Configure environment for Marlo platform 
+        """ Configure environment for Marlo platform
             Require previously launched minecraft environment
             - to launch: $MALMO_MINECRAFT_ROOT/launchClient.sh -p 10000
 
             Available params defined in:
             - https://github.com/crowdAI/marLo/blob/8652f8daef2caf9202881d002a2d3c28c882d941/marlo/base_env_builder.py
-        """ 
+        """
 
         import marlo
         marlo.logger.setLevel('ERROR')
@@ -212,7 +212,7 @@ class BaseEnv():
                                  params={
                                     "client_pool": client_pool,
                                     "videoResolution" : [84,84],
-                                    "tick_length": 1, 
+                                    "tick_length": 1,
                                     # "prioritise_offscreen_rendering": False,
                                     # "comp_all_commands": ['move', "turn"],
                                  })
@@ -222,10 +222,10 @@ class BaseEnv():
         return env
 
     def configure_gym_minecraft(self, env_name):
-        """ Configure environment for gym minecraft platform """ 
+        """ Configure environment for gym minecraft platform """
 
         import gym
-        import gym.spaces            
+        import gym.spaces
         import gym_minecraft
 
         env = gym.make(env_name)
@@ -254,7 +254,7 @@ class BaseEnv():
     def random_false_sampling(self, count, type='state'):
 
         samples = []
-   
+
         # randomly samples states
         if type == 'state':
             for i in range(count):

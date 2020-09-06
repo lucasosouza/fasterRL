@@ -1,7 +1,7 @@
-import sys
-sys.path.append("../../")
 
-from fasterRL.common import BaseExperiment, UntilWinExperiment
+
+
+from fasterrl.common import BaseExperiment, UntilWinExperiment
 
 # "ENV_NAME": "CartPole-v0",
 params = {

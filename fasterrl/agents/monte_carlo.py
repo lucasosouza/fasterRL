@@ -1,5 +1,5 @@
-from .td_learning import TDLearning
-from fasterRL.common.buffer import MCTransitionBuffer
+from fasterrl.agents.td_learning import TDLearning
+from fasterrl.common.buffer import MCTransitionBuffer
 
 class MonteCarlo(TDLearning):
 
@@ -20,9 +20,9 @@ class MonteCarlo(TDLearning):
                 self.qcount[state][action] = 0
 
     def learn(self, action, next_state, reward, done):
-  
+
         self.buffer.append((self.state, action, reward))
-        if done:     
+        if done:
             if self.importance_sampling:
                 self.learn_with_importance_sampling(action, next_state, reward, done)
             else:
@@ -36,7 +36,7 @@ class MonteCarlo(TDLearning):
     def learn_with_importance_sampling(self, action, next_state, reward, done):
         """ An incremental implementation of Monte-Carlo importance sampling
             Based on pseudocode in Sutton and Barto Book 2nd edition, page 109
-        """ 
+        """
 
         weight = 1
         for state, action, value in self.buffer.calculate_value(self.gamma):
@@ -44,7 +44,7 @@ class MonteCarlo(TDLearning):
             if weight == 0:
                 break
             # otherwise learns
-            error = value - self.qtable[state][action] 
+            error = value - self.qtable[state][action]
             self.qcount[state][action] += weight
             self.qtable[state][action] += error * weight/self.qcount[state][action]
             weight *= self.calculate_importance_sampling(state, action)

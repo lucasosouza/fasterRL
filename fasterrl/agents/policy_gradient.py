@@ -1,6 +1,6 @@
-from .base_agent import BaseAgent
-from fasterRL.common.buffer import ShortExperience, EpisodeBuffer
-from fasterRL.common.network import *
+from fasterrl.agents.base_agent import BaseAgent
+from fasterrl.common.buffer import ShortExperience, EpisodeBuffer
+from fasterrl.common.network import *
 
 import torch
 import torch.optim as optim
@@ -25,17 +25,17 @@ class PolicyGradient(BaseAgent):
     def set_environment(self, env):
         super(PolicyGradient, self).set_environment(env)
 
-        self.net = self.network_type(env.observation_space.shape, env.action_space.n, 
+        self.net = self.network_type(env.observation_space.shape, env.action_space.n,
             device=self.device, random_seed=self.random_seed)
         self.optimizer = optim.Adam(self.net.parameters(), lr=self.learning_rate)
 
     def calculate_action_probs(self, states, probs=False):
 
-        states_v = torch.FloatTensor(states) 
+        states_v = torch.FloatTensor(states)
         logits_v = self.net(states_v)
         if probs:
             action_probs_v = nn.Softmax(dim=1)(logits_v)
-            # v is a tensor which track gradients as well, unpack to acess underlying data            
+            # v is a tensor which track gradients as well, unpack to acess underlying data
             action_probs = action_probs_v.data.numpy()
             return action_probs
 
@@ -137,7 +137,7 @@ class ContinuousReinforce(Reinforce):
         self.net = self.network_type(env.observation_space.shape, env.action_space.shape,
             self.action_lower_bounds, self.action_range,
             device=self.device, random_seed=self.random_seed)
-        self.optimizer = optim.Adam(self.net.parameters(), lr=self.learning_rate)        
+        self.optimizer = optim.Adam(self.net.parameters(), lr=self.learning_rate)
 
     def select_action(self):
 
@@ -159,7 +159,7 @@ class ContinuousReinforce(Reinforce):
 
     def calculate_action_values(self, states, return_values=False):
 
-        states_v = torch.FloatTensor(states) 
+        states_v = torch.FloatTensor(states)
         mu_v, var_v = self.net(states_v)
         if return_values:
             mu = mu_v.data.cpu().numpy()
@@ -231,7 +231,7 @@ class CrossEntropy(PolicyGradient):
         if done:
             buffer_full = self.buffer.append_episode(self.episode_reward)
             # only learns when buffer is full
-            if buffer_full: 
+            if buffer_full:
                 states, actions = self.buffer.sample()
                 logits_v = self.calculate_action_probs(states, probs=False)
                 actions_v = torch.LongTensor(actions)
@@ -243,10 +243,10 @@ class CrossEntropy(PolicyGradient):
 class MonteCarloReinforce(Reinforce):
 
     def learn(self, action, next_state, reward, done):
-  
+
         self.transitions.append((self.state, action, reward))
 
-        if done:        
+        if done:
 
             values = self.calculate_qvalues()
             # remove baseline
@@ -273,10 +273,10 @@ class BatchReinforce(Reinforce):
         self.episodes = 0
 
     def learn(self, action, next_state, reward, done):
-  
+
         self.transitions.append((self.state, action, reward))
 
-        if done:        
+        if done:
 
             # calculate values
             values = self.calculate_qvalues()
@@ -307,10 +307,10 @@ class BatchReinforce(Reinforce):
 class ContinuousMonteCarloReinforce(ContinuousReinforce):
 
     def learn(self, action, next_state, reward, done):
-  
+
         self.transitions.append((self.state, action, reward))
 
-        if done:        
+        if done:
 
             values = self.calculate_qvalues()
             # remove baseline
@@ -336,10 +336,10 @@ class ContinuousBatchReinforce(ContinuousReinforce):
         self.episodes = 0
 
     def learn(self, action, next_state, reward, done):
-  
+
         self.transitions.append((self.state, action, reward))
 
-        if done:        
+        if done:
 
             # calculate values
             values = self.calculate_qvalues()
@@ -383,7 +383,7 @@ class ContinuousBatchReinforce(ContinuousReinforce):
 opted to do an average of the episode instead of keeping a list of past rewards
 and doing a moving average
 would introduce a new hyperparameter dependent on the environment, number of rewards to keep track of in the moving average
-or if I used a stepsize approach to update the average reward, a learning rate / step size for the average reward. anyway it would be an additional parameter I don't want to keep track of 
+or if I used a stepsize approach to update the average reward, a learning rate / step size for the average reward. anyway it would be an additional parameter I don't want to keep track of
 
         # baseline
         self.use_baseline = False

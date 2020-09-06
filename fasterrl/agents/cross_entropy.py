@@ -1,6 +1,6 @@
-from .base_agent import BaseAgent
-from fasterRL.common.buffer import ShortExperience, EpisodeBuffer
-from fasterRL.common.network import *
+from fasterrl.agents.base_agent import BaseAgent
+from fasterrl.common.buffer import ShortExperience, EpisodeBuffer
+from fasterrl.common.network import *
 
 import torch
 import torch.optim as optim

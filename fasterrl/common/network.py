@@ -1,5 +1,5 @@
 """
-Creates neural networks 
+Creates neural networks
 """
 
 import torch
@@ -9,6 +9,18 @@ import numpy as np
 torch.manual_seed(42)
 np.random.seed(42)
 
+__all__ = [
+    "Network",
+    "ConvNetwork",
+    "DeepQNetwork",
+    "SimpleValueNetwork",
+    "SimplePolicyNetwork",
+    "ContinuousPolicyNetwork",
+    "SimpleContinuousPolicyNetwork",
+    "SimpleA2CNetwork",
+    "DDPGActor",
+    "DDPGCritic"
+]
 
 class Network(nn.Module):
 
@@ -19,8 +31,8 @@ class Network(nn.Module):
         # self.device = device
 
     def forward(self, x):
-        """ Main forward function """      
-        
+        """ Main forward function """
+
         return self.network(x)
 
 class ConvNetwork(Network):
@@ -28,12 +40,12 @@ class ConvNetwork(Network):
     def __init__(self, device="cpu", random_seed=42):
         super(ConvNetwork, self).__init__(device, random_seed)
 
-        # to replace by specific 
+        # to replace by specific
         self.conv = None
         self.fc = None
 
     def _get_conv_out(self, shape):
-        """ 
+        """
             Get shape of output of conv layers, to help defining the input shape of next fc layer
         """
         # pass a batch with 1 obs and shape equal input shape through conv layers
@@ -43,23 +55,23 @@ class ConvNetwork(Network):
         return output_shape
 
     def forward(self, x):
-        """ Main forward function """      
+        """ Main forward function """
 
         # apply the convolution layer to input and obtain a 4d tensor on output
         # and result is flattened, by the view function
-        # view doesn't create a new memory obect or move data in memort, 
+        # view doesn't create a new memory obect or move data in memort,
         # just change higher-level shape of tensor
-        conv_out = self.conv(x).view(x.size()[0], -1)       
+        conv_out = self.conv(x).view(x.size()[0], -1)
 
         # pass flattened 2d tensor to fc layer
-        return self.fc(conv_out)     
+        return self.fc(conv_out)
 
 class DeepQNetwork(ConvNetwork):
 
     # input for Pong is 210 x 160
     # these were planned for an 84x84 image
-    # maybe what I can do is use the wrapper to rebalance it 
-    
+    # maybe what I can do is use the wrapper to rebalance it
+
     def __init__(self, input_shape, n_actions, device="cpu", random_seed=42):
         super(DeepQNetwork, self).__init__(device, random_seed)
 
@@ -70,22 +82,22 @@ class DeepQNetwork(ConvNetwork):
             nn.Conv2d(32, 64, kernel_size=4, stride=2),
             nn.ReLU(),
             nn.Conv2d(64, 64, kernel_size=3, stride=1),
-            nn.ReLU()        
+            nn.ReLU()
         )
-        
+
         # get size of last layer to pass it to the first fc layer
         # since pytorch has no flatten layer
         conv_out_size = self._get_conv_out(input_shape)
-        
+
         # defines fully connected layers as defined in DQN paper
         self.fc = nn.Sequential(
             nn.Linear(conv_out_size, 512),
             nn.ReLU(),
             nn.Linear(512, n_actions)
         )
-        
+
 class SimpleValueNetwork(Network):
-    
+
     def __init__(self, input_shape, n_actions, device="cpu", random_seed=42):
         super(SimpleValueNetwork, self).__init__(device, random_seed)
 
@@ -111,8 +123,8 @@ class SimplePolicyNetwork(Network):
             nn.ReLU(),
             nn.Linear(128, n_actions)
         )
-        
-        # need to think about when to apply the softmax 
+
+        # need to think about when to apply the softmax
         # maybe the methods should go here in this network instead of someplace else
 
 
@@ -128,12 +140,12 @@ class ContinuousPolicyNetwork(Network):
 
         self.action_lower_bounds = torch.FloatTensor(action_lower_bounds).to(device)
         action_range = action_upper_bounds - action_lower_bounds
-        self.action_mult_factor = torch.FloatTensor(action_range / 2.).to(device) # divided by range of tanh 
+        self.action_mult_factor = torch.FloatTensor(action_range / 2.).to(device) # divided by range of tanh
 
-    def adjust_output_range(self, x): 
+    def adjust_output_range(self, x):
         """ Adjust output to the action range expected in the environment
             Do I let it calculate gradients on this? yes, I would think so
-        """ 
+        """
 
         # converts output of tanh to 0 to 2 range
         x = x + 1.
@@ -172,7 +184,7 @@ class SimpleContinuousPolicyNetwork(ContinuousPolicyNetwork):
             nn.Linear(hidden_layer_neurons, self.n_actions),
             nn.Softplus()
         )
-        
+
     def forward(self, x):
 
         x = self.base(x)
@@ -215,7 +227,7 @@ class DDPGActor(ContinuousPolicyNetwork):
 
         n_vars_actions = action_space.shape[0]
         n_vars_state = input_shape[0]
- 
+
         self.network = nn.Sequential(
            nn.Linear(n_vars_state, 400), nn.ReLU(),
            nn.Linear(400, 300), nn.ReLU(),
