@@ -18,9 +18,9 @@ Future plan includes:
 
 Run `source install.sh`.
 
-This short script will run `python setup.py install`, and source `~/.bashrc` to create the environment variable `FASTERRL_LOGDIR`. This environment variable points to where local temporary files will be saved: logs, results, weights and runs. As default, it is located in the folder `local` at the root of the fasterrl folder. You may redefine to a different path.
+This short script will run `python setup.py install`, and source `~/.bashrc` to create the environment variable `FASTERRL_LOGDIR`. (This variable points to where local temporary files will be saved: logs, results, weights and runs. The default location is `./local`, inside this repo. You may redefine to a different path.)
 
-To test, run the `python examples/test.py`. You should see the output from the experiment in the console.
+To test, run `python examples/test.py`. You should see the output from the experiment in the console.
 
 ## Use
 
