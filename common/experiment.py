@@ -73,8 +73,8 @@ class BaseExperiment:
         # also uses a log level, for things above the agent level
         self.log_level = 2
         if "LOG_LEVEL" in params:
-            self.log_level = params["LOG_LEVEL"]            
-        
+            self.log_level = params["LOG_LEVEL"]
+
         self.reporting_interval = 1
         if "REPORTING_INTERVAL" in params:
             self.reporting_interval = params["REPORTING_INTERVAL"]
@@ -108,14 +108,14 @@ class BaseExperiment:
         if self.log_level > 1:
             self.exp_logger.report()
             self.exp_logger.save()
-                       
+
         # ensuring backwards compatibility
         return np.mean(self.exp_logger.episodes_to_complete)
 
     def init_instances(self, trial, alias="agent", color=-1):
 
         # instantiate env, logger and agent for every trial
-        env = self.env_method(self.params) # ok 
+        env = self.env_method(self.params) # ok
         agent = self.agent_method(self.params) # ok
         agent.set_environment(env)
         agent.set_alias(alias)
@@ -161,7 +161,7 @@ class BaseExperiment:
         logger.log_episode()
 
 class UntilWinExperiment(BaseExperiment):
-    """ agent plays until it wins. may define a max number of episodes """ 
+    """ agent plays until it wins. may define a max number of episodes """
 
     def __init__(self, params, experiment_name=None, experiment_group=None):
         super(UntilWinExperiment, self).__init__(params, experiment_name, experiment_group)
@@ -192,7 +192,7 @@ class UntilWinExperiment(BaseExperiment):
 
 
 class MultiAgentExperiment(UntilWinExperiment):
-    """ Two or more agents plays sequentially 
+    """ Two or more agents plays sequentially
         Modifications are done only to run and run trial functions
     """
 
@@ -224,7 +224,7 @@ class MultiAgentExperiment(UntilWinExperiment):
                 self.focused_sharing_threshold = self.params["FOCUSED_SHARING_THRESHOLD"]
 
     def run(self):
-        """ Modified to return the average number of episodes to finish 
+        """ Modified to return the average number of episodes to finish
             If not finished, return max (an oversimplification)
 
             Adaptations for multiagent.
@@ -251,7 +251,7 @@ class MultiAgentExperiment(UntilWinExperiment):
     def run_trial(self, trial):
         """ Modified to run until problem is solved or number of max episodes is reached
 
-            Adaptations to multiagent. 
+            Adaptations to multiagent.
             (loops are fast while agents number is low, hence are repeated to make the code more readable)
         """
 
@@ -316,7 +316,7 @@ class MultiAgentExperiment(UntilWinExperiment):
             print("Number of experiences transferred: {}".format([len(tb) for tb in transfer_batches]))
 
     def focus_share(self, agents):
-        """ For now accomodates two agents. Increase functionalities later 
+        """ For now accomodates two agents. Increase functionalities later
             can make this for N number of agents, but need to define rules.
             Ideally should not talk directly to buffer
 
@@ -325,7 +325,7 @@ class MultiAgentExperiment(UntilWinExperiment):
         """
 
         # each agent puts forward a request wit experiences wanted
-        transfer_requests = [] 
+        transfer_requests = []
         for a in agents:
             transfer_request = a.agent.buffer.identify_unexplored(threshold=self.focused_sharing_threshold)
             transfer_requests.append(transfer_request)
@@ -347,7 +347,7 @@ class MultiAgentExperiment(UntilWinExperiment):
             num_experiences_received = 0
             # agents who have completed episodes do not need more experiences
             if not a.agent.completed:
-                for batch in batches:              
+                for batch in batches:
                     a.agent.buffer.receive(batch)
                     a.logger.experiences_received += len(batch)
                     num_experiences_received += len(batch)
@@ -373,8 +373,7 @@ to consider it later:
 
 # this is not thought of to run in parallel
 # how would it run in parallel
-# should I prepare the library for it?
-# yes, I should, that is the only answer I can think of as of now 
+# should I prepare the library for it
 # however, I still think there should be two separate logs
 # if that is so, then the experiment id generation goes back up
 

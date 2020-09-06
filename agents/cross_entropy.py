@@ -35,17 +35,17 @@ class CrossEntropy(BaseAgent):
     def set_environment(self, env):
         super(CrossEntropy, self).set_environment(env)
 
-        self.net = self.network_type(env.observation_space.shape, env.action_space.n, 
+        self.net = self.network_type(env.observation_space.shape, env.action_space.n,
             device=self.device, random_seed=self.random_seed)
         self.optimizer = optim.Adam(self.net.parameters(), lr=self.learning_rate)
 
     def calculate_action_probs(self, states, probs=False):
 
-        states_v = torch.FloatTensor(states) 
+        states_v = torch.FloatTensor(states)
         action_probs_v = self.net(states_v)
         if probs:
             action_probs_v = nn.Softmax(dim=1)(action_probs_v)
-            # v is a tensor which track gradients as well, unpack to acess underlying data            
+            # v is a tensor which track gradients as well, unpack to acess underlying data
             action_probs = action_probs_v.data.numpy()
             return action_probs
 
@@ -59,7 +59,7 @@ class CrossEntropy(BaseAgent):
         if done:
             buffer_full = self.buffer.append_episode(self.episode_reward)
             # only learns when buffer is full
-            if buffer_full: 
+            if buffer_full:
                 states, actions = self.buffer.sample()
                 action_probs_v = self.calculate_action_probs(states)
                 actions_v = torch.LongTensor(actions)
@@ -76,7 +76,7 @@ class CrossEntropy(BaseAgent):
         return action
 
 
-    # can I reuse learn? yes I can
-    # but I will only learn after the last episode is over and my buffer has reached full capacity
-    # I can control it in the buffer
-    # when it is done, I will ask to close the buffer
+    # can reuse learn
+    # but will only learn after the last episode is over and my buffer has reached full capacity
+    # can control it in the buffer
+    # when it is done, will ask to close the buffer

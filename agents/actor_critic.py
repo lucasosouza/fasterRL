@@ -19,11 +19,11 @@ class A2C(MonteCarloReinforce):
 
     def calculate_action_probs(self, states, probs=False):
 
-        states_v = torch.FloatTensor(states) 
+        states_v = torch.FloatTensor(states)
         logits_v, qvalues_v = self.net(states_v)
         if probs:
             action_probs_v = nn.Softmax(dim=1)(logits_v)
-            # v is a tensor which track gradients as well, unpack to acess underlying data            
+            # v is a tensor which track gradients as well, unpack to acess underlying data
             action_probs = action_probs_v.data.numpy()
             return action_probs
 
@@ -31,7 +31,7 @@ class A2C(MonteCarloReinforce):
 
     def calculate_kl_div(self, states, prob_v):
 
-        states_v = torch.FloatTensor(states) 
+        states_v = torch.FloatTensor(states)
         new_logits_v, _ = self.net(states_v)
         new_prob_v = F.softmax(new_logits_v, dim=1)
         kl_div_v = -((new_prob_v / prob_v).log() * prob_v).sum(dim=1).mean()
@@ -73,14 +73,14 @@ class A2C(MonteCarloReinforce):
         # propagate policy loss separately t track the gradients
         self.loss_policy_v.backward(retain_graph=True)
         # extract gradient from policy,to plot
-        self.grads = np.concatenate([p.grad.data.cpu().numpy().flatten() 
+        self.grads = np.concatenate([p.grad.data.cpu().numpy().flatten()
             for p in self.net.parameters() if p.grad is not None])
 
-        # propagate remaining loss 
+        # propagate remaining loss
         loss_v.backward()
 
         if self.gradient_clipping:
-            nn.utils.clip_grad_norm_(self.net.parameters(), self.clip_grad)           
+            nn.utils.clip_grad_norm_(self.net.parameters(), self.clip_grad)
         self.optimizer.step() # change weights
 
         # metrics for logger
@@ -93,23 +93,16 @@ class A2C(MonteCarloReinforce):
         # and then improving it later
 
 # procedures are correct
-# to debug, I would have to introduce those other things discussed
+# to debug, would have to introduce those other things discussed
 # gradient statistics
 # KL divergence and other things
 
-# tomorrow, start introducing these extra things and debugging A2C. goal is to get it to work. then move on to DDPG
-# stil, if I have the time, I do want to do n-steps or lambda when possible
-# it will get me thinking
-# discretization is also a goal
-
-
-
 """
     def learn(self, action, next_state, reward, done):
-  
+
         self.transitions.append((self.state, action, reward))
 
-        if done:        
+        if done:
 
             # calculate values
             values = self.calculate_qvalues()
